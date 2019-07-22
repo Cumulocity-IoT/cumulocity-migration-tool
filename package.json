@@ -1,16 +1,22 @@
 {
   "name": "migration-tool",
   "version": "1.0.0",
-  "description": "",
+  "description": "A tool for migrating applications, dashboards, and other managed objects between Cumulocity Tenants",
   "main": "index.js",
   "scripts": {
-    "start": "c8ycli server --env.extraWebpackConfig=./extra-webpack.config.js -u https://peach.eu-latest.cumulocity.com",
+    "start": "c8ycli server --env.extraWebpackConfig=./extra-webpack.config.js",
     "build": "c8ycli build --env.extraWebpackConfig=./extra-webpack.config.js",
     "deploy": "c8ycli deploy --env.extraWebpackConfig=./extra-webpack.config.js",
     "postinstall": "patch-package"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "Cumulocity",
+    "Migration",
+    "Migrate",
+    "Transfer"
+  ],
+  "repository": "github:SoftwareAG/cumulocity-migration-tool",
+  "author": "Richard Peach - Software AG",
   "license": "Apache-2.0",
   "dependencies": {
     "@angular/animations": "7.2.2",
