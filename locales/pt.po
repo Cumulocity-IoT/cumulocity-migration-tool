@@ -1,0 +1,78 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Language-Team: \n"
+"X-Generator: Poedit 1.8.9\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: pt\n"
+
+msgid ""
+"... this basic Application will show you some concepts and components about "
+"the:"
+msgstr ""
+"… esta simples aplicação irá demonstrará alguns conceitos e componentes "
+"acerca de:"
+
+msgid "Awesome Tab"
+msgstr "Separador Incrível"
+
+msgid "Breadcrumbs (below the c8y-title)"
+msgstr "Caminho de navegação (abaixo de c8y-title)"
+
+msgid "Climbing vertically and upside down, his speed and superhuman strength"
+msgstr ""
+"Trepar verticalmente e invertido, a sua velocidade e força sobre humana."
+
+msgid "Extraordinary fighting abilities"
+msgstr "Capacidade de luta extraordinária"
+
+msgid "Female"
+msgstr "Feminina"
+
+msgid "Gender"
+msgstr "Género"
+
+msgid "Global actions (top right corner (+)-Button)"
+msgstr "Acções Globais (canto superior direito, Botão (+))"
+
+msgid "Hello"
+msgstr "Olá"
+
+msgid "Local actions (within Superhero-page)"
+msgstr "Acções locais (dentro da página super herói)"
+
+msgid "Male"
+msgstr "Masculino"
+
+msgid "Mighty warrior with strength, stamina and agility"
+msgstr "Guerreiro destemido com força, resistência e agilidade"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Navigator (panel on the left)"
+msgstr "Navegador (painel à esquerda)"
+
+msgid "Outstanding Tab"
+msgstr "Separador Notável"
+
+msgid "Power"
+msgstr "Poder"
+
+msgid "Remove Hero"
+msgstr "Remove super-herói"
+
+msgid "Superhero"
+msgstr "Super-herói"
+
+msgid "Tabs (within World-page)"
+msgstr "Separadores (dentro da página Mundo)"
+
+msgid "World"
+msgstr "Mundo"

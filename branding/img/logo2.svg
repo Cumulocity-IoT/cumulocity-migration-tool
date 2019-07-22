@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" width="260px" height="210px" viewBox="0 0 1200 400" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<defs>
+		<path id="arrow" fill="#000" transform="translate(600, 125) rotate(-45) scale(0.8) translate(-300, -250)" d="M 0 50 Q 400 50 400 400 Q 450 350 450 400 L 350 550 L 250 400 Q 250 350 300 400 Q 300 150 0 150 Z"/>
+
+		<mask height="480" width="640" y="-50" x="-50" id="mask">
+			<rect fill="#fff" height="480" width="1280" y="0" x="0"/>
+			<use href="#arrow" xlink:href="#arrow" stroke="#000" stroke-width="30"/>
+		</mask>
+	</defs>
+
+	<path mask="url(#mask)" fill="none" stroke="#000" stroke-width="30" d="m200,316c-150,0 -100,-200 0,-150c0,-150 200,-150 200,0c150,-100 200,150 50,150l-250,0z"/>
+	<g mask="url(#mask)" >
+		<path transform="translate(500,0)" fill="none" stroke="#000" stroke-width="30" d="m200,316c-150,0 -100,-200 0,-150c0,-150 200,-150 200,0c150,-100 200,150 50,150l-250,0z"/>
+	</g>
+	<use href="#arrow" xlink:href="#arrow"/>
+</svg>

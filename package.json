@@ -1,0 +1,61 @@
+{
+  "name": "migration-tool",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "c8ycli server --env.extraWebpackConfig=./extra-webpack.config.js -u https://peach.eu-latest.cumulocity.com",
+    "build": "c8ycli build --env.extraWebpackConfig=./extra-webpack.config.js",
+    "deploy": "c8ycli deploy --env.extraWebpackConfig=./extra-webpack.config.js",
+    "postinstall": "patch-package"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@angular/animations": "7.2.2",
+    "@angular/common": "7.2.2",
+    "@angular/compiler": "7.2.2",
+    "@angular/core": "7.2.2",
+    "@angular/forms": "7.2.2",
+    "@angular/http": "7.2.2",
+    "@angular/platform-browser": "7.2.2",
+    "@angular/platform-browser-dynamic": "7.2.2",
+    "@angular/router": "7.2.2",
+    "@angular/upgrade": "7.2.2",
+    "@c8y/ngx-components": "1004.0.8",
+    "@c8y/style": "1004.0.8",
+    "core-js": "^2.6.2",
+    "downloadjs": "^1.4.7",
+    "jszip": "^3.2.1",
+    "lodash": "^4.17.11",
+    "object-scan": "^10.0.3",
+    "rxjs": "~6.3.3",
+    "zone.js": "~0.8.28"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "~0.10.4",
+    "@angular/compiler-cli": "7.2.2",
+    "@angular/language-service": "7.2.2",
+    "@c8y/cli": "1004.0.8",
+    "@types/downloadjs": "^1.4.1",
+    "@types/jszip": "^3.1.6",
+    "@types/lodash": "^4.14.134",
+    "patch-package": "^6.1.2",
+    "typescript": "3.1.6"
+  },
+  "c8y": {
+    "application": {
+      "name": "Migration Tool",
+      "contextPath": "migration-tool",
+      "key": "migration-tool-application-key",
+      "brandingEntry": "./branding/branding.less",
+      "globalTitle": "Migration Tool",
+      "tabsHorizontal": true,
+      "icon": {
+        "class": "fa fa-cloud-upload"
+      }
+    },
+    "cli": {}
+  }
+}

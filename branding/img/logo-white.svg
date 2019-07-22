@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" width="260px" height="210px" viewBox="0 0 640 480" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<defs>
+		<path id="arrow-up" fill="#fff" transform="translate(250, 300) scale(0.5) translate(-300, -250)"
+			  d="M 250 450 L 250 200 Q 200 250 200 200 L 300 50 L 400 200 Q 400 250 350 200 L 350 450 L 350 450 Z"/>
+		<path id="arrow-down" fill="#fff" transform="translate(375, 330) rotate(180) scale(0.5) translate(-300, -250)"
+			  d="M 250 450 L 250 200 Q 200 250 200 200 L 300 50 L 400 200 Q 400 250 350 200 L 350 450 L 350 450 Z"/>
+
+		<mask height="480" width="640" y="-50" x="-50" id="mask">
+			<rect fill="#fff" height="480" width="640" y="0" x="0"/>
+			<use href="#arrow-up" xlink:href="#arrow-up" stroke="#000" stroke-width="30"/>
+			<use href="#arrow-down" xlink:href="#arrow-down" stroke="#000" stroke-width="30"/>
+		</mask>
+	</defs>
+
+	<path mask="url(#mask)" fill="none" stroke="#fff" stroke-width="30"
+		  d="m200,316c-150,0 -100,-200 0,-150c0,-150 200,-150 200,0c150,-100 200,150 50,150l-250,0z"/>
+	<use href="#arrow-up" xlink:href="#arrow-up"/>
+	<use href="#arrow-down" xlink:href="#arrow-down"/>
+</svg>
