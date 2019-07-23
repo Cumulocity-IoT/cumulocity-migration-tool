@@ -1,5 +1,5 @@
 # Cumulocity Migration Tool
-A Cumuocity webapp to migrate applications, dashboards, groups, devices, simulators, smart rules, images and managed objects between tenants.
+A Cumulocity webapp to migrate applications, dashboards, groups, devices, simulators, smart rules, images and managed objects between tenants.
 ![Migration](images/Screenshot.png)
 
 # Installation
