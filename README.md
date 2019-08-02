@@ -34,6 +34,9 @@ The migration tool can be installed in 2 ways:
 8. Make any edits to the objects
 9. Click Execute Migration in the action bar
 
+# [FAQ - Frequently Asked Questions](https://github.com/SoftwareAG/cumulocity-migration-tool/wiki/Frequently-Asked-Questions)
+The [FAQ](https://github.com/SoftwareAG/cumulocity-migration-tool/wiki/Frequently-Asked-Questions) contains information, limitations, and extra troubleshooting instructions.
+
 # Screen Overview
 ![ConnectionDetails](images/ConnectionDetails.png)
 1. Connection Type
