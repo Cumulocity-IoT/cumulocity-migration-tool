@@ -72,6 +72,7 @@ export class CredentialsComponent {
     onFileChange(connectionDetails: IFileConnectionDetails, event: Event) {
         connectionDetails.file = (event.target as HTMLInputElement).files[0];
         connectionDetails.fileName = (event.target as HTMLInputElement).files[0].name;
+        this.connectionDetails$.next(connectionDetails);
         return Promise.all([this.dataService.getSourceDataClient().getApplications(), this.dataService.getSourceDataClient().getAllManagedObjects()])
             .then(([applications, managedObjects]) => {
                 [...applications, ...managedObjects].filter(b => !b.hasOwnProperty('c8y_applications_storage')).forEach(appOrMo => {
