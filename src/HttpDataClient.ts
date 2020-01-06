@@ -227,8 +227,16 @@ export class HttpDataClient extends DataClient {
         return this.client.core.baseUrl;
     }
 
+    private getSmartRuleUrl(smartRuleConfig: Partial<ISmartRuleConfig>): string {
+        if (_.has(smartRuleConfig,['c8y_Context', 'id'])) {
+            return `/service/smartrule/managedObjects/${smartRuleConfig.c8y_Context.id}/smartrules`;
+        } else {
+            return '/service/smartrule/smartrules';
+        }
+    }
+
     async createSmartRule(smartRuleConfig: ISmartRuleConfig): Promise<string|number> {
-        return (await (await this.client.core.fetch(`/service/smartrule/managedObjects/${smartRuleConfig.c8y_Context.id}/smartrules`, {
+        return (await (await this.client.core.fetch(this.getSmartRuleUrl(smartRuleConfig), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -271,7 +279,7 @@ export class HttpDataClient extends DataClient {
     }
 
     async updateSmartRule(smartRuleConfig: Partial<ISmartRuleConfig>): Promise<string | number> {
-        return (await (await this.client.core.fetch(`/service/smartrule/managedObjects/${smartRuleConfig.c8y_Context.id}/smartrules/${smartRuleConfig.id}`, {
+        return (await (await this.client.core.fetch(`${this.getSmartRuleUrl(smartRuleConfig)}/${smartRuleConfig.id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
