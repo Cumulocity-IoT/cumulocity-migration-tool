@@ -103,6 +103,7 @@ export class CredentialsComponent {
             const newApp = MigrateComponent.appMigrationToApp({ // TODO: shouldn't be accessing this as a static method, should be in a service or util file
                 newName: 'Migration Tool',
                 newContextPath: 'migration-tool',
+                newAppKey: 'migration-tool-application-key',
                 application: migrationToolApp
             });
             await dataClient.createApplication(newApp, binaryBlob);

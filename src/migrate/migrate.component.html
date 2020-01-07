@@ -25,36 +25,41 @@
         <col style="width: 15%">
         <col style="width: 10%">
         <col style="width: 10%">
+        <col style="width: 10%">
         <col style="width: 15%">
         <col style="width: 15%">
+        <col style="width: 10%">
         <col style="width: 10%">
     </colgroup>
 
     <thead>
         <tr class="migration-header">
-            <th colspan="3">From {{from}}</th>
+            <th colspan="4">From {{from}}</th>
             <th><i class="fa fa-arrow-right fa-2x"></i></th>
-            <th colspan="4">To {{to}}</th>
+            <th colspan="5">To {{to}}</th>
         </tr>
     </thead>
     <tbody *ngIf="!!appMigrations?.length">
         <tr class="summary-header">
-            <th colspan="8">Applications ({{appMigrations.length}})</th>
+            <th colspan="10">Applications ({{appMigrations.length}})</th>
         </tr>
         <tr>
             <th>ID</th>
             <th>Name</th>
             <th>Context Path</th>
+            <th>Key</th>
             <th class="creation-mode">Creation Mode</th>
             <th>ID</th>
             <th>New Name</th>
             <th>New Context Path</th>
+            <th>New Key</th>
             <th></th>
         </tr>
         <tr *ngFor="let m of appMigrations" class="hoverable">
             <td>{{m.application.id}}</td>
             <td>{{m.application.name}}</td>
             <td>/apps/{{m.application.contextPath}}</td>
+            <td>{{m.application.key}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
                 <selectApplication #modal [selected]="m.updateExisting?.id.toString()" (selectedChange)="changeApplicationMigrationUpdateExisting(m, $event)"></selectApplication>
@@ -69,6 +74,10 @@
                 <input *ngIf="isInEditMode(m); else notEditModeContext" type="text" class="form-control" [(ngModel)]="m.newContextPath"/>
                 <ng-template #notEditModeContext>/apps/{{m.newContextPath}}</ng-template>
             </td>
+            <td>
+                <input *ngIf="isInEditMode(m); else notEditModeAppKey" type="text" class="form-control" [(ngModel)]="m.newAppKey"/>
+                <ng-template #notEditModeAppKey>{{m.newAppKey}}</ng-template>
+            </td>
             <td class="text-right">
                 <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetApplicationMigration(m)"><i class="fa fa-undo"></i></a>
                 <a class="btn btn-primary" (click)="toggleEditMode(m)"><i class="fa fa-pencil"></i></a>
@@ -77,26 +86,26 @@
     </tbody>
     <tbody *ngIf="!!dashboardMigrations?.length">
         <tr class="summary-header">
-            <th colspan="8">Dashboards ({{dashboardMigrations.length}})</th>
+            <th colspan="10">Dashboards ({{dashboardMigrations.length}})</th>
         </tr>
         <tr>
             <th>ID</th>
-            <th colspan="2">Name</th>
+            <th colspan="3">Name</th>
             <th class="creation-mode">Creation Mode</th>
             <th>ID</th>
-            <th colspan="2">New Name</th>
+            <th colspan="3">New Name</th>
             <th></th>
         </tr>
         <tr *ngFor="let m of dashboardMigrations" class="hoverable">
             <td>{{m.managedObject.id}}</td>
-            <td colspan="2">{{getDashboardName(m.managedObject)}}</td>
+            <td colspan="3">{{getDashboardName(m.managedObject)}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
                 <selectDashboard #modal [selected]="m.updateExisting?.id" (selectedChange)="changeDashboardMigrationUpdateExisting(m, $event)"></selectDashboard>
                 <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
-            <td colspan="2">{{m.newName}}</td>
+            <td colspan="3">{{m.newName}}</td>
             <td class="text-right">
                 <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetDashboardMigration(m)"><i class="fa fa-undo"></i></a>
                 <a class="btn btn-primary" (click)="toggleEditMode(m)"><i class="fa fa-pencil"></i></a>
@@ -105,26 +114,26 @@
     </tbody>
     <tbody *ngIf="!!groupMigrations?.length">
         <tr class="summary-header">
-            <th colspan="8">Groups ({{groupMigrations.length}})</th>
+            <th colspan="10">Groups ({{groupMigrations.length}})</th>
         </tr>
         <tr>
             <th>ID</th>
-            <th colspan="2">Name</th>
+            <th colspan="3">Name</th>
             <th class="creation-mode">Creation Mode</th>
             <th>ID</th>
-            <th colspan="2">New Name</th>
+            <th colspan="3">New Name</th>
             <th></th>
         </tr>
         <tr *ngFor="let m of groupMigrations" class="hoverable">
             <td>{{m.managedObject.id}}</td>
-            <td colspan="2">{{m.managedObject.name}}</td>
+            <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
                 <selectGroup #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectGroup>
                 <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
-            <td colspan="2">
+            <td colspan="3">
                 <input *ngIf="isInEditMode(m); else notEditMode" class="form-control" [(ngModel)]="m.newName"/>
                 <ng-template #notEditMode>{{m.newName}}</ng-template>
             </td>
@@ -136,26 +145,26 @@
     </tbody>
     <tbody *ngIf="!!deviceMigrations?.length">
         <tr class="summary-header">
-            <th colspan="8">Devices ({{deviceMigrations.length}})</th>
+            <th colspan="10">Devices ({{deviceMigrations.length}})</th>
         </tr>
         <tr>
             <th>ID</th>
-            <th colspan="2">Name</th>
+            <th colspan="3">Name</th>
             <th class="creation-mode">Creation Mode</th>
             <th>ID</th>
-            <th colspan="2">New Name</th>
+            <th colspan="3">New Name</th>
             <th></th>
         </tr>
         <tr *ngFor="let m of deviceMigrations" class="hoverable">
             <td>{{m.managedObject.id}}</td>
-            <td colspan="2">{{m.managedObject.name}}</td>
+            <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
                 <selectDevice #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectDevice>
                 <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
-            <td colspan="2">
+            <td colspan="3">
                 <input *ngIf="isInEditMode(m); else notEditMode" class="form-control" [(ngModel)]="m.newName"/>
                 <ng-template #notEditMode>{{m.newName}}</ng-template>
             </td>
@@ -167,26 +176,26 @@
     </tbody>
     <tbody *ngIf="!!simulatorMigrations?.length">
         <tr class="summary-header">
-            <th colspan="8">Simulators ({{simulatorMigrations.length}})</th>
+            <th colspan="10">Simulators ({{simulatorMigrations.length}})</th>
         </tr>
         <tr>
             <th>ID</th>
-            <th colspan="2">Name</th>
+            <th colspan="3">Name</th>
             <th class="creation-mode">Creation Mode</th>
             <th>ID</th>
-            <th colspan="2">New Name</th>
+            <th colspan="3">New Name</th>
             <th></th>
         </tr>
         <tr *ngFor="let m of simulatorMigrations" class="hoverable">
             <td>{{m.managedObject.id}}</td>
-            <td colspan="2">{{m.managedObject.name}}</td>
+            <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
                 <selectSimulator #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectSimulator>
                 <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
-            <td colspan="2">
+            <td colspan="3">
                 <input *ngIf="isInEditMode(m); else notEditMode" class="form-control" [(ngModel)]="m.newName"/>
                 <ng-template #notEditMode>{{m.newName}}</ng-template>
             </td>
@@ -198,26 +207,26 @@
     </tbody>
     <tbody *ngIf="!!smartRuleMigrations?.length">
         <tr class="summary-header">
-            <th colspan="8">Smart Rules ({{smartRuleMigrations.length}})</th>
+            <th colspan="10">Smart Rules ({{smartRuleMigrations.length}})</th>
         </tr>
         <tr>
             <th>ID</th>
-            <th colspan="2">Name</th>
+            <th colspan="3">Name</th>
             <th class="creation-mode">Creation Mode</th>
             <th>ID</th>
-            <th colspan="2">New Name</th>
+            <th colspan="3">New Name</th>
             <th></th>
         </tr>
         <tr *ngFor="let m of smartRuleMigrations" class="hoverable">
             <td>{{m.managedObject.id}}</td>
-            <td colspan="2">{{m.managedObject.name}}</td>
+            <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
                 <selectSmartRule #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectSmartRule>
                 <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
-            <td colspan="2">
+            <td colspan="3">
                 <input *ngIf="isInEditMode(m); else notEditMode" class="form-control" [(ngModel)]="m.newName"/>
                 <ng-template #notEditMode>{{m.newName}}</ng-template>
             </td>
@@ -229,26 +238,26 @@
     </tbody>
     <tbody *ngIf="!!binaryMigrations?.length">
         <tr class="summary-header">
-            <th colspan="8">Binaries ({{binaryMigrations.length}})</th>
+            <th colspan="10">Binaries ({{binaryMigrations.length}})</th>
         </tr>
         <tr>
             <th>ID</th>
-            <th colspan="2">Name</th>
+            <th colspan="3">Name</th>
             <th class="creation-mode">Creation Mode</th>
             <th>ID</th>
-            <th colspan="2">New Name</th>
+            <th colspan="3">New Name</th>
             <th></th>
         </tr>
         <tr *ngFor="let m of binaryMigrations" class="hoverable">
             <td>{{m.managedObject.id}}</td>
-            <td colspan="2">{{m.managedObject.name}}</td>
+            <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
                 <selectBinary #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectBinary>
                 <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
-            <td colspan="2">
+            <td colspan="3">
                 <input *ngIf="isInEditMode(m); else notEditMode" class="form-control" [(ngModel)]="m.newName"/>
                 <ng-template #notEditMode>{{m.newName}}</ng-template>
             </td>
@@ -260,26 +269,26 @@
     </tbody>
     <tbody *ngIf="!!otherMigrations?.length">
         <tr class="summary-header">
-            <th colspan="8">Other ({{otherMigrations.length}})</th>
+            <th colspan="10">Other ({{otherMigrations.length}})</th>
         </tr>
         <tr>
             <th>ID</th>
-            <th colspan="2">Name</th>
+            <th colspan="3">Name</th>
             <th class="creation-mode">Creation Mode</th>
             <th>ID</th>
-            <th colspan="2">New Name</th>
+            <th colspan="3">New Name</th>
             <th></th>
         </tr>
         <tr *ngFor="let m of otherMigrations" class="hoverable">
             <td>{{m.managedObject.id}}</td>
-            <td colspan="2">{{m.managedObject.name}}</td>
+            <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
                 <selectOther #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectOther>
                 <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
-            <td colspan="2">
+            <td colspan="3">
                 <input *ngIf="isInEditMode(m); else notEditMode" class="form-control" [(ngModel)]="m.newName"/>
                 <ng-template #notEditMode>{{m.newName}}</ng-template>
             </td>

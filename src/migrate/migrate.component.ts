@@ -38,6 +38,7 @@ import {ISmartRuleConfig} from "../c8y-interfaces/ISmartRuleConfig";
 interface ApplicationMigration {
     newName: string,
     newContextPath: string,
+    newAppKey: string,
     application: IApplication & { binary:IManagedObject },
     updateExisting?: IApplication
 }
@@ -128,6 +129,7 @@ export class MigrateComponent {
         this.appMigrations = selectedApps.map(application => ({
             newName: application.name,
             newContextPath: application.contextPath,
+            newAppKey: application.key,
             application,
             updateExisting: this.findExistingApplication(application, destApps)
         }));
@@ -192,9 +194,11 @@ export class MigrateComponent {
         if (appMigration.updateExisting) {
             appMigration.newName = appMigration.updateExisting.name;
             appMigration.newContextPath = appMigration.updateExisting.contextPath;
+            appMigration.newAppKey = appMigration.updateExisting.key;
         } else {
             appMigration.newName = appMigration.application.name;
             appMigration.newContextPath = appMigration.application.contextPath;
+            appMigration.newAppKey = appMigration.application.key;
         }
     }
 
@@ -430,6 +434,7 @@ export class MigrateComponent {
         // Update the application with the user provided changes...
         result.contextPath = appMigration.newContextPath;
         result.name = appMigration.newName;
+        result.key = appMigration.newAppKey;
 
         return result;
     }
