@@ -378,7 +378,13 @@ export class MigrateComponent {
             }
             this.dirty = false;
         } catch(e) {
-            alrt.update('Error: ' + e.toString(), 'danger');
+            if (e instanceof Error) {
+                alrt.update(`${e.name || 'Error'}: ${e.message}`, 'danger');
+            } else if (e.data && e.data.error) {
+                alrt.update(`${e.data.error}: ${e.data.message}`, 'danger');
+            } else {
+                alrt.update('Error: Check browser console for details', 'danger');
+            }
             throw(e);
         } finally {
             this.reset();
