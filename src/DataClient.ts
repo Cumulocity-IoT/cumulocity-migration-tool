@@ -40,7 +40,7 @@ export abstract class DataClient {
 
     abstract invalidateCache();
 
-    abstract createApplication(app: IApplication, blob: Blob): Promise<string | number>;
+    abstract createApplication(app: IApplication, blob?: Blob): Promise<string | number>;
     abstract createManagedObject(managedObject: IManagedObject): Promise<string | number>;
     abstract createSimulator(simulatorConfig: Partial<ISimulatorConfig>): Promise<{ simulatorId: string, deviceIds: (string | number)[]}>;
     abstract createSmartRule(smartRuleConfig: ISmartRuleConfig): Promise<string|number>;
@@ -57,7 +57,7 @@ export abstract class DataClient {
         }
     ): Promise<void>;
 
-    abstract updateApplication(app: IApplication, blob: Blob): Promise<string | number>;
+    abstract updateApplication(app: IApplication, blob?: Blob): Promise<string | number>;
     abstract updateBinary(binary: IManagedObject, blob: Blob): Promise<string | number>;
     abstract updateManagedObject(managedObject: IManagedObject): Promise<string | number>;
     abstract updateSimulator(simulatorConfig: Partial<ISimulatorConfig>): Promise<{ simulatorId: string, deviceIds: (string | number)[]}>;
@@ -111,100 +111,112 @@ export abstract class DataClient {
     }
 
     async findLinkedDashboardsFromApplication(app: IApplication & { id: string | number; binary: IManagedObject }, onDownloadProgress?: (progress: number) => any): Promise<IManagedObject[]> {
-        const blob = await this.getApplicationBlob(app, onDownloadProgress);
-        let zip;
-        try {
-             zip = await JSZip.loadAsync(blob);
-        } catch(e) {
-            console.debug('Not a zip file');
-            return [];
-        }
+        // App builder apps include a list of dashboards in a custom field "applicationBuilder.dashboards"
+        if ((app as any).applicationBuilder) {
+            const dashboardIds = ((app as any).applicationBuilder.dashboards || []).map(dashboard => dashboard.id);
+            const dashboardManagedObjects = await this.getDashboards();
+            return dashboardManagedObjects.filter(dashboard => dashboardIds.includes(dashboard.id));
+        // Other apps might have a zip file containing some js and html files that indicate which dashboards to use
+        } else {
+            const blob = await this.getApplicationBlob(app, onDownloadProgress);
 
-        const files = zip.file(/.*\.(js|html)/);
+            // If there's no blob then the app has no binary
+            if (blob == undefined) return [];
 
-        const names = [];
-        const partialNames = [];
-        const ids = [];
+            let zip;
+            try {
+                zip = await JSZip.loadAsync(blob);
+            } catch (e) {
+                console.debug('Not a zip file');
+                return [];
+            }
 
-        await Promise.all(
-            files.map(async (file) => {
-                const text = await file.async('text');
-                let matches;
-                const nameRegex = /<c8y-dashboard-gridstack[^>]+?name=(["'])((\w|-)+?)\1.*?>/g;
-                // noinspection JSAssignmentUsedAsCondition
-                while (matches = nameRegex.exec(text)) {
-                    names.push(matches[2]);
-                }
+            const files = zip.file(/.*\.(js|html)/);
 
-                const nameCtrlRegex = /dashboard[-_]?[nN]ame=(["'])((\w|-)+?)\1/g;
-                // noinspection JSAssignmentUsedAsCondition
-                while (matches = nameCtrlRegex.exec(text)) {
-                    partialNames.push(matches[2] + '*');
-                }
+            const names = [];
+            const partialNames = [];
+            const ids = [];
 
-                const nameJsRegex = /c8y_Dashboard!name!((\w|-)+)/g;
-                // noinspection JSAssignmentUsedAsCondition
-                while (matches = nameJsRegex.exec(text)) {
-                    partialNames.push(matches[1] + '*');
-                }
+            await Promise.all(
+                files.map(async (file) => {
+                    const text = await file.async('text');
+                    let matches;
+                    const nameRegex = /<c8y-dashboard-gridstack[^>]+?name=(["'])((\w|-)+?)\1.*?>/g;
+                    // noinspection JSAssignmentUsedAsCondition
+                    while (matches = nameRegex.exec(text)) {
+                        names.push(matches[2]);
+                    }
 
-                // If the dashboard name is some combinations of a string and some templates, eg: 'mydashboard-{{vm.dashboardNumber}}' we might be able to guess all of the allGroups associated with an app by finding all 'mydashboard-*'
-                const partialNameRegex = /<c8y-dashboard-gridstack[^>]+?name=(["'])(.+?)\1.*?>/g;
-                // noinspection JSAssignmentUsedAsCondition
-                while (matches = partialNameRegex.exec(text)) {
-                    if (!nameRegex.test(matches[0])) {
-                        const partialName = matches[2]
-                            .trim()
-                            .replace(/{{.*?}}/g, '*'); // replace angularjs template string with wildcard matcher
-                        // If the whole expression starts with '::' then it's a single run angular expression so ignore it (we can't find a dashboard from that)
-                        // If the expression has enough (3 or more) non-special characters then we'll assume it might be unique enough to find a dashboard
-                        if (!partialName.startsWith('::') && partialName.replace(/[-*_.:]/g, '').length >= 3) {
-                            partialNames.push(partialName);
+                    const nameCtrlRegex = /dashboard[-_]?[nN]ame=(["'])((\w|-)+?)\1/g;
+                    // noinspection JSAssignmentUsedAsCondition
+                    while (matches = nameCtrlRegex.exec(text)) {
+                        partialNames.push(matches[2] + '*');
+                    }
+
+                    const nameJsRegex = /c8y_Dashboard!name!((\w|-)+)/g;
+                    // noinspection JSAssignmentUsedAsCondition
+                    while (matches = nameJsRegex.exec(text)) {
+                        partialNames.push(matches[1] + '*');
+                    }
+
+                    // If the dashboard name is some combinations of a string and some templates, eg: 'mydashboard-{{vm.dashboardNumber}}' we might be able to guess all of the allGroups associated with an app by finding all 'mydashboard-*'
+                    const partialNameRegex = /<c8y-dashboard-gridstack[^>]+?name=(["'])(.+?)\1.*?>/g;
+                    // noinspection JSAssignmentUsedAsCondition
+                    while (matches = partialNameRegex.exec(text)) {
+                        if (!nameRegex.test(matches[0])) {
+                            const partialName = matches[2]
+                                .trim()
+                                .replace(/{{.*?}}/g, '*'); // replace angularjs template string with wildcard matcher
+                            // If the whole expression starts with '::' then it's a single run angular expression so ignore it (we can't find a dashboard from that)
+                            // If the expression has enough (3 or more) non-special characters then we'll assume it might be unique enough to find a dashboard
+                            if (!partialName.startsWith('::') && partialName.replace(/[-*_.:]/g, '').length >= 3) {
+                                partialNames.push(partialName);
+                            }
                         }
                     }
-                }
-                const idRegex = /<c8y-dashboard-gridstack[^>]+?id=(["'])((\w|-)+?)\1.*?>/g;
-                // noinspection JSAssignmentUsedAsCondition
-                while (matches = idRegex.exec(text)) {
-                    ids.push(matches[2]);
-                }
-            }));
+                    const idRegex = /<c8y-dashboard-gridstack[^>]+?id=(["'])((\w|-)+?)\1.*?>/g;
+                    // noinspection JSAssignmentUsedAsCondition
+                    while (matches = idRegex.exec(text)) {
+                        ids.push(matches[2]);
+                    }
+                }));
 
-        const dashboardManagedObjects = await this.getDashboards();
+            const dashboardManagedObjects = await this.getDashboards();
 
-        return _.uniqBy([
-            ..._.flatMap(names, name => {
-                const matchingManagedObject = dashboardManagedObjects.find(mo => mo[`c8y_Dashboard!name!${name}`] !== undefined);
-                if (matchingManagedObject) {
-                    console.log('Found dashboard with name', name, matchingManagedObject);
-                    return [matchingManagedObject];
-                } else {
-                    console.error('Unable to find dashboard with name', name);
-                    return [];
-                }
-            }),
-            ..._.flatMap(ids, id => {
-                const matchingManagedObject = dashboardManagedObjects.find(mo => mo.id.toString() === id.toString());
-                if (matchingManagedObject) {
-                    console.log('Found dashboard with id', id, matchingManagedObject);
-                    return [matchingManagedObject];
-                } else {
-                    console.error('Unable to find dashboard with id', id);
-                    return [];
-                }
-            }),
-            ..._.flatMap(partialNames, wildCardName => {
-                const wildCardRegex = RegExp('^c8y_Dashboard!name!' + wildCardName.split('*').map(expressionPart => _.escapeRegExp(expressionPart)).join('.*') + '$');
-                const matchingManagedObjects = dashboardManagedObjects.filter(mo => Object.keys(mo).find(key => wildCardRegex.test(key)) !== undefined);
-                if (matchingManagedObjects.length > 0) {
-                    console.log('Found allGroups with wild-card name', wildCardName, matchingManagedObjects);
-                    return matchingManagedObjects;
-                } else {
-                    console.error('Unable to find dashboard with wild-card name', wildCardName);
-                    return [];
-                }
-            }),
-        ], dashboard => dashboard.id);
+            return _.uniqBy([
+                ..._.flatMap(names, name => {
+                    const matchingManagedObject = dashboardManagedObjects.find(mo => mo[`c8y_Dashboard!name!${name}`] !== undefined);
+                    if (matchingManagedObject) {
+                        console.log('Found dashboard with name', name, matchingManagedObject);
+                        return [matchingManagedObject];
+                    } else {
+                        console.error('Unable to find dashboard with name', name);
+                        return [];
+                    }
+                }),
+                ..._.flatMap(ids, id => {
+                    const matchingManagedObject = dashboardManagedObjects.find(mo => mo.id.toString() === id.toString());
+                    if (matchingManagedObject) {
+                        console.log('Found dashboard with id', id, matchingManagedObject);
+                        return [matchingManagedObject];
+                    } else {
+                        console.error('Unable to find dashboard with id', id);
+                        return [];
+                    }
+                }),
+                ..._.flatMap(partialNames, wildCardName => {
+                    const wildCardRegex = RegExp('^c8y_Dashboard!name!' + wildCardName.split('*').map(expressionPart => _.escapeRegExp(expressionPart)).join('.*') + '$');
+                    const matchingManagedObjects = dashboardManagedObjects.filter(mo => Object.keys(mo).find(key => wildCardRegex.test(key)) !== undefined);
+                    if (matchingManagedObjects.length > 0) {
+                        console.log('Found allGroups with wild-card name', wildCardName, matchingManagedObjects);
+                        return matchingManagedObjects;
+                    } else {
+                        console.error('Unable to find dashboard with wild-card name', wildCardName);
+                        return [];
+                    }
+                }),
+            ], dashboard => dashboard.id);
+        }
     };
 
     async findLinkedFromDashboard(dashboard: IManagedObject):

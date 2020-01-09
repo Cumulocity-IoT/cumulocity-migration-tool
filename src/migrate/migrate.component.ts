@@ -366,9 +366,11 @@ export class MigrateComponent {
             await Promise.all(this.appMigrations.map(async (appMigration) => {
                 const blob = await sourceClient.getApplicationBlob(appMigration.application);
                 if (appMigration.updateExisting) {
-                    return destinationClient.updateApplication(appMigration.updateExisting, blob);
+                    const app = MigrateComponent.appMigrationToApp(appMigration, oldIdsToNewIdsMap);
+                    app.id = appMigration.updateExisting.id;
+                    return destinationClient.updateApplication(app, blob);
                 } else {
-                    return destinationClient.createApplication(MigrateComponent.appMigrationToApp(appMigration), blob);
+                    return destinationClient.createApplication(MigrateComponent.appMigrationToApp(appMigration, oldIdsToNewIdsMap), blob);
                 }
             }));
 
@@ -395,8 +397,8 @@ export class MigrateComponent {
         }
     }
 
-    static appMigrationToApp(appMigration: ApplicationMigration): IApplication {
-        const result: IApplication = {};
+    static appMigrationToApp(appMigration: ApplicationMigration, oldIdsToNewIds: Map<string, string|number>): IApplication {
+        const result: IApplication & {applicationBuilder?: any} = {};
 
         // Blacklist certain fields
         function isBlacklistedKey(key) {
@@ -430,6 +432,17 @@ export class MigrateComponent {
         paths.forEach(path => {
             _.set(result, path, _.get(appMigration.application, path));
         });
+
+        // Update application builder dashboard ids
+        if (result.applicationBuilder && result.applicationBuilder.dashboards) {
+            result.applicationBuilder.dashboards.forEach(dashboard => {
+                if (oldIdsToNewIds.has(dashboard.id.toString())) {
+                    dashboard.id = oldIdsToNewIds.get(dashboard.id.toString());
+                } else {
+                    // TODO: add to warning
+                }
+            })
+        }
 
         // Update the application with the user provided changes...
         result.contextPath = appMigration.newContextPath;

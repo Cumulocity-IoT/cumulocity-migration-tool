@@ -83,10 +83,13 @@ export class HttpDataClient extends DataClient {
     }
 
     getApplicationBlob(app: (IApplication & {binary: IManagedObject}), onProgress?: (progress: number) => any) {
+        if (app.binary == undefined) {
+            return undefined;
+        }
        return this.getBinaryBlob(app.binary, onProgress);
     }
 
-    async createApplication(app: IApplication, blob: Blob): Promise<string | number> {
+    async createApplication(app: IApplication, blob?: Blob): Promise<string | number> {
         // Create the app
         const newApp = (await this.client.application.create(app)).data;
 
@@ -182,20 +185,22 @@ export class HttpDataClient extends DataClient {
         };
     }
 
-    async updateApplication(app: IApplication, blob: Blob): Promise<string | number> {
-        // Create the binary
-        const fd = new FormData();
-        fd.append('file', blob, `${app.name.replace(/\s/g, '-').replace(/[^a-zA-Z0-9\-]/g, '') || 'application'}.zip`);
+    async updateApplication(app: IApplication & {applicationBuilder?: any}, blob?: Blob): Promise<string | number> {
+        if (blob != undefined) {
+            // Create the binary
+            const fd = new FormData();
+            fd.append('file', blob, `${app.name.replace(/\s/g, '-').replace(/[^a-zA-Z0-9\-]/g, '') || 'application'}.zip`);
 
-        app.activeVersionId = (await (await this.client.core.fetch(`/application/applications/${app.id}/binaries`, {
-            method: 'POST',
-            body: fd,
-            headers: {
-                Accept: 'application/json'
-            }
-        })).json()).id;
+            app.activeVersionId = (await (await this.client.core.fetch(`/application/applications/${app.id}/binaries`, {
+                method: 'POST',
+                body: fd,
+                headers: {
+                    Accept: 'application/json'
+                }
+            })).json()).id;
+        }
 
-        await this.client.application.update({id: app.id, activeVersionId: app.activeVersionId});
+        await this.client.application.update({id: app.id, activeVersionId: app.activeVersionId, applicationBuilder: app.applicationBuilder} as IApplication);
 
         return app.id
     }

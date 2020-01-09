@@ -92,25 +92,30 @@ export class FileDataClient extends DataClient {
         }
     }
 
-    async createApplication(app: IApplication, blob: Blob): Promise<string | number> {
+    async createApplication(app: IApplication, blob?: Blob): Promise<string | number> {
         app = _.cloneDeep(app);
         app.id = this.getNextManagedObjectId();
         const json = await this.exportJsonFormat;
-        const binaryId = this.getNextManagedObjectId();
-        app.activeVersionId = binaryId;
+        if (blob != undefined) {
+            app.activeVersionId = this.getNextManagedObjectId();
+        }
         json.applications.push(app);
-        json.managedObjects.push({
-            owner: "file",
-            name: `${app.name}.zip`,
-            id: binaryId,
-            c8y_applications_storage: "",
-            c8y_IsBinary: "",
-            length: 305,
-            c8y_application_context_path: "file/unknown",
-            contentType: "application/x-zip-compressed"
-        } as any);
+        if (blob != undefined) {
+            json.managedObjects.push({
+                owner: "file",
+                name: `${app.name}.zip`,
+                id: app.activeVersionId,
+                c8y_applications_storage: "",
+                c8y_IsBinary: "",
+                length: 305,
+                c8y_application_context_path: "file/unknown",
+                contentType: "application/x-zip-compressed"
+            } as any);
+        }
         const zip = (await JSZip.loadAsync(this.file));
-        zip.file(`binaries/${binaryId}.zip`, blob);
+        if (blob != undefined) {
+            zip.file(`binaries/${app.activeVersionId}.zip`, blob);
+        }
         zip.file('data.json', JSON.stringify(await this.exportJsonFormat, undefined, 2));
         this.file = await zip.generateAsync({type: 'blob'});
         return app.id;
