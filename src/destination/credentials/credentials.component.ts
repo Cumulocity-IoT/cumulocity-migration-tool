@@ -105,7 +105,7 @@ export class CredentialsComponent {
                 newContextPath: 'migration-tool',
                 newAppKey: 'migration-tool-application-key',
                 application: migrationToolApp
-            });
+            }, new Map<string, string|number>());
             await dataClient.createApplication(newApp, binaryBlob);
             alrt.update('Done! Redirecting...', 'success');
             await delay(1000);

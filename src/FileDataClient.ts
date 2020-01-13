@@ -92,9 +92,12 @@ export class FileDataClient extends DataClient {
         }
     }
 
-    async createApplication(app: IApplication, blob?: Blob): Promise<string | number> {
+    async createApplication(app: IApplication & {applicationBuilder?: any}, blob?: Blob): Promise<string | number> {
         app = _.cloneDeep(app);
         app.id = this.getNextManagedObjectId();
+        if (app.applicationBuilder) {
+            app.externalUrl = app.externalUrl.split('UNKNOWN-APP-ID').join(app.id.toString());
+        }
         const json = await this.exportJsonFormat;
         if (blob != undefined) {
             app.activeVersionId = this.getNextManagedObjectId();

@@ -32,7 +32,7 @@ import {DataClient} from "../../DataClient";
 export class ApplicationComponent implements OnDestroy {
     private dataClient: DataClient;
     showAll$: BehaviorSubject<boolean> = new BehaviorSubject(false);
-    allApplications: Promise<(IApplication & {id: string|number, binary: IManagedObject})[]>;
+    allApplications: Promise<(IApplication & {id: string|number, binary: IManagedObject} & {applicationBuilder?: any})[]>;
     filteredApplications: Promise<(IApplication & {id: string|number, binary: IManagedObject, downloading?:boolean})[]>;
 
     showAllSubscription: Subscription;
@@ -45,7 +45,7 @@ export class ApplicationComponent implements OnDestroy {
         this.dataClient = this.dataService.getSourceDataClient();
         this.allApplications = this.dataClient.getApplicationsWithBinaries();
         this.showAllSubscription = this.showAll$.subscribe(showAll => {
-            this.filteredApplications = this.allApplications.then(apps => sortById(apps.filter(app => showAll || app.binary)));
+            this.filteredApplications = this.allApplications.then(apps => sortById(apps.filter(app => showAll || app.binary || app.applicationBuilder)));
         });
     }
 
@@ -123,8 +123,12 @@ export class ApplicationComponent implements OnDestroy {
 
     openApplication(event: MouseEvent, app: IApplication) {
         event.stopPropagation();
-        const baseUrl = this.dataClient.getBaseUrl();
-        window.open(`${baseUrl}/apps/${app.contextPath}`, '_blank');
+        if (app.externalUrl) {
+            window.open(app.externalUrl, '_blank');
+        } else {
+            const baseUrl = this.dataClient.getBaseUrl();
+            window.open(`${baseUrl}/apps/${app.contextPath}`, '_blank');
+        }
     }
 
 

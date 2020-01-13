@@ -433,15 +433,18 @@ export class MigrateComponent {
             _.set(result, path, _.get(appMigration.application, path));
         });
 
-        // Update application builder dashboard ids
-        if (result.applicationBuilder && result.applicationBuilder.dashboards) {
-            result.applicationBuilder.dashboards.forEach(dashboard => {
-                if (oldIdsToNewIds.has(dashboard.id.toString())) {
-                    dashboard.id = oldIdsToNewIds.get(dashboard.id.toString());
-                } else {
-                    // TODO: add to warning
-                }
-            })
+        if (result.applicationBuilder) {
+            result.externalUrl = appMigration.application.externalUrl.split(appMigration.application.id.toString()).join('UNKNOWN-APP-ID');
+            // Update application builder dashboard ids
+            if (result.applicationBuilder.dashboards) {
+                result.applicationBuilder.dashboards.forEach(dashboard => {
+                    if (oldIdsToNewIds.has(dashboard.id.toString())) {
+                        dashboard.id = oldIdsToNewIds.get(dashboard.id.toString());
+                    } else {
+                        // TODO: add to warning
+                    }
+                })
+            }
         }
 
         // Update the application with the user provided changes...

@@ -30,7 +30,7 @@
         <td>{{application.binary?.id}}</td>
         <td>{{application.binary?.length | fileSize}}</td>
         <td>
-            <button class="btn btn-default" *ngIf="application.contextPath" (click)="openApplication($event, application)" translate>Open</button>
+            <button class="btn btn-default" *ngIf="application.contextPath || application.externalUrl" (click)="openApplication($event, application)" translate>Open</button>
         </td>
         <td>
             <button class="btn btn-default" *ngIf="application.binary" (click)="downloadApplication($event, application, application.binary)" translate>Download</button>

@@ -89,9 +89,14 @@ export class HttpDataClient extends DataClient {
        return this.getBinaryBlob(app.binary, onProgress);
     }
 
-    async createApplication(app: IApplication, blob?: Blob): Promise<string | number> {
+    async createApplication(app: IApplication & {applicationBuilder?: any}, blob?: Blob): Promise<string | number> {
         // Create the app
         const newApp = (await this.client.application.create(app)).data;
+
+        // Update the external URL for applicationBuilder apps
+        if (app.applicationBuilder) {
+            newApp.externalUrl = newApp.externalUrl.split('UNKNOWN-APP-ID').join(newApp.id.toString());
+        }
 
         // Create the binary
         await this.updateApplication(newApp, blob);
@@ -200,7 +205,7 @@ export class HttpDataClient extends DataClient {
             })).json()).id;
         }
 
-        await this.client.application.update({id: app.id, activeVersionId: app.activeVersionId, applicationBuilder: app.applicationBuilder} as IApplication);
+        await this.client.application.update({id: app.id, activeVersionId: app.activeVersionId, externalUrl: app.externalUrl, applicationBuilder: app.applicationBuilder} as IApplication);
 
         return app.id
     }

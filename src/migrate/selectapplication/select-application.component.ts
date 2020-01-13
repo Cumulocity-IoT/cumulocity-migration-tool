@@ -36,7 +36,7 @@ export class SelectApplicationComponent implements OnDestroy{
 
     private dataClient: DataClient;
     showAll$: BehaviorSubject<boolean> = new BehaviorSubject(false);
-    allApplications: Promise<(IApplication & {id: string|number, binary: IManagedObject})[]>;
+    allApplications: Promise<(IApplication & {id: string|number, binary: IManagedObject} & {applicationBuilder?: any})[]>;
     filteredApplications: Promise<(IApplication & {id: string|number, binary: IManagedObject, downloading?:boolean})[]>;
 
     showAllSubscription: Subscription;
@@ -49,7 +49,7 @@ export class SelectApplicationComponent implements OnDestroy{
         this.dataClient = this.dataService.getSourceDataClient();
         this.allApplications = this.dataClient.getApplicationsWithBinaries();
         this.showAllSubscription = this.showAll$.subscribe(showAll => {
-            this.filteredApplications = this.allApplications.then(apps => sortById(apps.filter(app => showAll || app.binary)));
+            this.filteredApplications = this.allApplications.then(apps => sortById(apps.filter(app => showAll || app.binary || app.applicationBuilder)));
         });
     }
 
