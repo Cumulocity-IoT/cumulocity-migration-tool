@@ -26,6 +26,7 @@ import {DataService} from "../../data.service";
 import {MigrateComponent} from "../../migrate/migrate.component";
 import {UpdateableAlert} from "../../utils/UpdateableAlert";
 import {delay} from "../../utils/utils";
+import {Migration} from "../../migrate/migration.service";
 
 @Component({
     templateUrl: './credentials.component.html'
@@ -100,7 +101,7 @@ export class CredentialsComponent {
                 alrt.update(`Downloading Migration Tool... ${(progress * 100).toFixed(0)}%`);
             }); // TODO: progress
             alrt.update('Uploading to tenant...');
-            const newApp = MigrateComponent.appMigrationToApp({ // TODO: shouldn't be accessing this as a static method, should be in a service or util file
+            const newApp = Migration.appMigrationToApp({
                 newName: 'Migration Tool',
                 newContextPath: 'migration-tool',
                 newAppKey: 'migration-tool-application-key',
