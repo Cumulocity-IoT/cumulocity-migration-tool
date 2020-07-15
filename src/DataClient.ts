@@ -18,7 +18,7 @@
 import JSZip from "jszip";
 import {IManagedObject, ICurrentUser, IApplication} from "@c8y/client";
 import _ from "lodash";
-import {getIdPathsFromDashboard, getSimulatorId} from "./utils/utils";
+import {getIdPathsFromApplication, getIdPathsFromDashboard, getSimulatorId} from "./utils/utils";
 import {IExternalId} from "./c8y-interfaces/IExternalId";
 import {ISimulatorConfig} from "./c8y-interfaces/ISimulatorConfig";
 import {ISmartRuleConfig} from "./c8y-interfaces/ISmartRuleConfig";
@@ -110,25 +110,33 @@ export abstract class DataClient {
             .filter(mo => !usedIds.some(usedId => usedId === mo.id.toString()));
     }
 
-    async findLinkedDashboardsFromApplication(app: IApplication & { id: string | number; binary: IManagedObject }, onDownloadProgress?: (progress: number) => any): Promise<IManagedObject[]> {
+    async findReferencedFromApplication(app: IApplication & { id: string | number; binary: IManagedObject }, onDownloadProgress?: (progress: number) => any): Promise<{dashboards: IManagedObject[], devices: IManagedObject[]}> {
         // App builder apps include a list of dashboards in a custom field "applicationBuilder.dashboards"
         if ((app as any).applicationBuilder) {
-            const dashboardIds = ((app as any).applicationBuilder.dashboards || []).map(dashboard => dashboard.id);
+            const appBuilderDashboards = ((app as any).applicationBuilder.dashboards || []);
+            const dashboardIds = appBuilderDashboards.map(dashboard => dashboard.id);
+
+            const deviceIdPaths = getIdPathsFromApplication(app);
+            const deviceIds = _.uniq(deviceIdPaths.map((path: string[]) => _.get(app, path)));
             const dashboardManagedObjects = await this.getDashboards();
-            return dashboardManagedObjects.filter(dashboard => dashboardIds.includes(dashboard.id));
+            const deviceManagedObjects = await this.getDevices();
+            return {
+                dashboards: dashboardManagedObjects.filter(dashboard => dashboardIds.includes(dashboard.id)),
+                devices: deviceManagedObjects.filter(device => deviceIds.includes(device.id))
+            };
         // Other apps might have a zip file containing some js and html files that indicate which dashboards to use
         } else {
             const blob = await this.getApplicationBlob(app, onDownloadProgress);
 
             // If there's no blob then the app has no binary
-            if (blob == undefined) return [];
+            if (blob == undefined) return {devices: [], dashboards: []};
 
             let zip;
             try {
                 zip = await JSZip.loadAsync(blob);
             } catch (e) {
                 console.debug('Not a zip file');
-                return [];
+                return {devices: [], dashboards: []};
             }
 
             const files = zip.file(/.*\.(js|html)/);
@@ -183,39 +191,42 @@ export abstract class DataClient {
 
             const dashboardManagedObjects = await this.getDashboards();
 
-            return _.uniqBy([
-                ..._.flatMap(names, name => {
-                    const matchingManagedObject = dashboardManagedObjects.find(mo => mo[`c8y_Dashboard!name!${name}`] !== undefined);
-                    if (matchingManagedObject) {
-                        console.log('Found dashboard with name', name, matchingManagedObject);
-                        return [matchingManagedObject];
-                    } else {
-                        console.error('Unable to find dashboard with name', name);
-                        return [];
-                    }
-                }),
-                ..._.flatMap(ids, id => {
-                    const matchingManagedObject = dashboardManagedObjects.find(mo => mo.id.toString() === id.toString());
-                    if (matchingManagedObject) {
-                        console.log('Found dashboard with id', id, matchingManagedObject);
-                        return [matchingManagedObject];
-                    } else {
-                        console.error('Unable to find dashboard with id', id);
-                        return [];
-                    }
-                }),
-                ..._.flatMap(partialNames, wildCardName => {
-                    const wildCardRegex = RegExp('^c8y_Dashboard!name!' + wildCardName.split('*').map(expressionPart => _.escapeRegExp(expressionPart)).join('.*') + '$');
-                    const matchingManagedObjects = dashboardManagedObjects.filter(mo => Object.keys(mo).find(key => wildCardRegex.test(key)) !== undefined);
-                    if (matchingManagedObjects.length > 0) {
-                        console.log('Found allGroups with wild-card name', wildCardName, matchingManagedObjects);
-                        return matchingManagedObjects;
-                    } else {
-                        console.error('Unable to find dashboard with wild-card name', wildCardName);
-                        return [];
-                    }
-                }),
-            ], dashboard => dashboard.id);
+            return {
+                devices: [],
+                dashboards: _.uniqBy([
+                    ..._.flatMap(names, name => {
+                        const matchingManagedObject = dashboardManagedObjects.find(mo => mo[`c8y_Dashboard!name!${name}`] !== undefined);
+                        if (matchingManagedObject) {
+                            console.log('Found dashboard with name', name, matchingManagedObject);
+                            return [matchingManagedObject];
+                        } else {
+                            console.error('Unable to find dashboard with name', name);
+                            return [];
+                        }
+                    }),
+                    ..._.flatMap(ids, id => {
+                        const matchingManagedObject = dashboardManagedObjects.find(mo => mo.id.toString() === id.toString());
+                        if (matchingManagedObject) {
+                            console.log('Found dashboard with id', id, matchingManagedObject);
+                            return [matchingManagedObject];
+                        } else {
+                            console.error('Unable to find dashboard with id', id);
+                            return [];
+                        }
+                    }),
+                    ..._.flatMap(partialNames, wildCardName => {
+                        const wildCardRegex = RegExp('^c8y_Dashboard!name!' + wildCardName.split('*').map(expressionPart => _.escapeRegExp(expressionPart)).join('.*') + '$');
+                        const matchingManagedObjects = dashboardManagedObjects.filter(mo => Object.keys(mo).find(key => wildCardRegex.test(key)) !== undefined);
+                        if (matchingManagedObjects.length > 0) {
+                            console.log('Found allGroups with wild-card name', wildCardName, matchingManagedObjects);
+                            return matchingManagedObjects;
+                        } else {
+                            console.error('Unable to find dashboard with wild-card name', wildCardName);
+                            return [];
+                        }
+                    }),
+                ], dashboard => dashboard.id)
+            };
         }
     };
 

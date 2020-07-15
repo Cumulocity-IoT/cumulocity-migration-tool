@@ -2,7 +2,13 @@ import {DataClient} from "../DataClient";
 import {IApplication, IManagedObject} from "@c8y/client";
 import _ from "lodash";
 import objectScan from "object-scan";
-import {getIdPathsFromDashboard, getSimulatorId, isSimulatorDevice, setFromPath} from "../utils/utils";
+import {
+    getIdPathsFromApplication,
+    getIdPathsFromDashboard,
+    getSimulatorId,
+    isSimulatorDevice,
+    setFromPath
+} from "../utils/utils";
 import {IExternalId} from "../c8y-interfaces/IExternalId";
 import {Subject} from "rxjs";
 import {ISmartRuleConfig} from "../c8y-interfaces/ISmartRuleConfig";
@@ -239,6 +245,18 @@ export class Migration {
             _.set(result, path, _.get(appMigration.application, path));
         });
 
+        const deviceIdPaths = getIdPathsFromApplication(appMigration.application);
+        deviceIdPaths.forEach(path => {
+            if (_.has(result, path)) {
+                const oldId = _.get(result, path);
+                if (oldIdsToNewIds.has(oldId.toString())) {
+                    _.set(result, path, oldIdsToNewIds.get(oldId.toString()));
+                } else {
+                    // TODO: add to warning
+                }
+            }
+        });
+
         if (result.applicationBuilder) {
             result.externalUrl = appMigration.application.externalUrl.split(appMigration.application.id.toString()).join('UNKNOWN-APP-ID');
             // Update application builder dashboard ids
@@ -250,6 +268,9 @@ export class Migration {
                         // TODO: add to warning
                     }
                 })
+            } else {
+                // Should always have a dashboards property, even if empty
+                result.applicationBuilder.dashboards = [];
             }
         }
 
