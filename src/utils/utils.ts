@@ -17,7 +17,7 @@
  */
 import _ from 'lodash';
 import {Observable} from "rxjs";
-import {IManagedObject} from '@c8y/client';
+import {IManagedObject, IApplication} from '@c8y/client';
 import objectScan from "object-scan";
 import {IExternalId} from "../c8y-interfaces/IExternalId";
 
@@ -65,6 +65,14 @@ export function getDashboardName(dashboard: IManagedObject) {
             return dashboard.name || '-';
         }
     }
+}
+
+export function getIdPathsFromApplication(application: IApplication): string[][] {
+    const isNumberOrString = (key, value) => _.isString(value) || _.isNumber(value);
+
+    return _.uniqBy([
+        ...objectScan(['**.device', '**.device*id', '**.device*Id', '**.device*ID'], {useArraySelector: false, joined: false, filterFn: isNumberOrString})(application)
+    ], JSON.stringify);
 }
 
 export function getIdPathsFromDashboard(dashboard: IManagedObject): string[][] {

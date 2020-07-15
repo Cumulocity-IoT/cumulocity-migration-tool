@@ -25,6 +25,7 @@ import {UpdateableAlert} from "../../utils/UpdateableAlert";
 * limitations under the License.
  */
 import {DataClient} from "../../DataClient";
+import { uniqBy } from 'lodash';
 
 @Component({
     templateUrl: './application.component.html'
@@ -78,30 +79,52 @@ export class ApplicationComponent implements OnDestroy {
             app.downloading = true;
             const downloadAlert = new UpdateableAlert(this.alertService);
             this.selectionService.select(app.id);
-            const linkedDashboards = await this.dataClient.findLinkedDashboardsFromApplication(app, (progress) => {
+            const {
+                dashboards: linkedDashboards,
+                devices: linkedDevicesFromApp
+            } = await this.dataClient.findReferencedFromApplication(app, (progress) => {
                 downloadAlert.update(`Searching for linked Dashboards, Groups and Devices...\nDownloading application: ${(progress * 100).toFixed(0)}%`);
             });
             downloadAlert.update(`Searching for linked Dashboards, Groups and Devices...\nExtracting and searching...`);
-            let groupCount = 0;
-            let deviceCount = 0;
-            let simulatorsCount = 0;
-            let smartRulesCount = 0;
-            let binaryCount = 0;
-            let otherCount = 0;
-            const dashboardCount = (await Promise.all(linkedDashboards.map(async (dashboard) => {
+            let allGroups = [];
+            let allDevices = [];
+            let allSimulators = [];
+            let allSmartRules = [];
+            let allBinaries = [];
+            let allOther = [];
+            const dashboardCount = (await Promise.all(linkedDashboards.map(async dashboard => {
                 this.selectionService.select(dashboard.id, app.id);
                 const {devices, groups, simulators, smartRules, binaries, other, childParentLinks} = await this.dataClient.findLinkedFromDashboard(dashboard);
                 childParentLinks.forEach(({child, parent}) => {
                     this.selectionService.select(child, parent);
                 });
-                groupCount += groups.length;
-                deviceCount += devices.length;
-                simulatorsCount += simulators.length;
-                smartRulesCount += smartRules.length;
-                binaryCount += binaries.length;
-                otherCount += other.length;
+                allGroups.push(...groups);
+                allDevices.push(...devices);
+                allSimulators.push(...simulators);
+                allSmartRules.push(...smartRules);
+                allBinaries.push(...binaries);
+                allOther.push(...other);
             }))).length;
-            downloadAlert.update(`Links found: ${dashboardCount} Dashboards, ${groupCount} Groups, ${deviceCount} Devices, ${simulatorsCount} Simulators, ${smartRulesCount} Smart Rules, ${binaryCount} Binaries, ${otherCount} Other`);
+            await Promise.all(linkedDevicesFromApp.map(async device => {
+                this.selectionService.select(device.id, app.id);
+                const {devices, groups, simulators, smartRules, other, childParentLinks} = await this.dataClient.findLinkedFrom(device);
+                childParentLinks.forEach(({child, parent}) => {
+                    this.selectionService.select(child, parent);
+                });
+                allGroups.push(...groups);
+                allDevices.push(...devices);
+                allSimulators.push(...simulators);
+                allSmartRules.push(...smartRules);
+                allOther.push(...other);
+            }))
+            allGroups = uniqBy(allGroups, group => group.id);
+            allDevices = uniqBy(allDevices, device => device.id);
+            allSimulators = uniqBy(allSimulators, simulator => simulator.id);
+            allSmartRules = uniqBy(allSmartRules, smartRule => smartRule.id);
+            allBinaries = uniqBy(allBinaries, binary => binary.id);
+            allOther = uniqBy(allOther, other => other.id);
+
+            downloadAlert.update(`Links found: ${dashboardCount} Dashboards, ${allGroups.length} Groups, ${allDevices.length} Devices, ${allSimulators.length} Simulators, ${allSmartRules.length} Smart Rules, ${allBinaries.length} Binaries, ${allOther.length} Other`);
             downloadAlert.close(5000);
             app.downloading = false;
         }
