@@ -4,10 +4,11 @@
   "description": "A tool for migrating applications, dashboards, and other managed objects between Cumulocity Tenants",
   "main": "index.js",
   "scripts": {
-    "start": "c8ycli server --env.extraWebpackConfig=./extra-webpack.config.js",
+    "start": "c8ycli server --env.extraWebpackConfig=./extra-webpack.config.js -u https://sandbox-cg.cumulocity.com",
     "build": "c8ycli build --env.extraWebpackConfig=./extra-webpack.config.js",
     "deploy": "c8ycli deploy --env.extraWebpackConfig=./extra-webpack.config.js",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "preinstall": "npx npm-force-resolutions"
   },
   "keywords": [
     "Cumulocity",
@@ -49,6 +50,9 @@
     "@types/lodash": "^4.14.134",
     "patch-package": "^6.1.2",
     "typescript": "3.1.6"
+  },
+  "resolutions": {
+    "graceful-fs": "4.2.4"
   },
   "c8y": {
     "application": {
