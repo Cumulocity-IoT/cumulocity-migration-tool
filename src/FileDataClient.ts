@@ -67,7 +67,11 @@ export class FileDataClient extends DataClient {
     }
 
     getApplicationBlob(app: IApplication & { binary: IManagedObject }, onProgress?: (progress: number) => any): Promise<Blob> {
-         return this.getBinaryBlob(app.binary, onProgress);
+        if (app.binary == undefined) {
+            return undefined;
+        }
+        
+        return this.getBinaryBlob(app.binary, onProgress);
     }
 
     async getApplications(): Promise<IApplication[]> {
