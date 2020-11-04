@@ -438,6 +438,7 @@ export class Migration {
 
     eplFileMigrationToEplFileConfiguration(eplFileMigration: EplFileMigration, oldDeviceIdToNew: Map<string, string|number>) : IEplFileConfiguration {
         const result: IEplFileConfiguration = _.cloneDeep(eplFileMigration.eplFile);
+        result.name = eplFileMigration.newName;
         
         return result;
     }
