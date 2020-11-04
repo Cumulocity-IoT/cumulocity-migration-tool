@@ -26,6 +26,7 @@ import {FileDataClient} from "../FileDataClient";
 import {UpdateableAlert} from "../utils/UpdateableAlert";
 import {
     ApplicationMigration,
+    EplFileMigration,
     ManagedObjectMigration,
     Migration,
     MigrationLogEvent,
@@ -33,6 +34,7 @@ import {
 } from "./migration.service";
 import {filter} from 'rxjs/operators';
 import {BehaviorSubject} from "rxjs";
+import { IEplFileConfiguration } from 'src/c8y-interfaces/IEplFileConfig';
 
 
 @Component({
@@ -46,6 +48,7 @@ export class MigrateComponent {
     to: string;
 
     appMigrations: ApplicationMigration[];
+    eplFileMigrations: EplFileMigration[];
     dashboardMigrations: ManagedObjectMigration[];
     groupMigrations: ManagedObjectMigration[];
     deviceMigrations: ManagedObjectMigration[];
@@ -64,6 +67,7 @@ export class MigrateComponent {
 
     async loadData() {
         this.appMigrations = [];
+        this.eplFileMigrations = [];
         this.dashboardMigrations = [];
         this.groupMigrations = [];
         this.deviceMigrations = [];
@@ -80,6 +84,8 @@ export class MigrateComponent {
 
         const [sourceApps, destApps] = await Promise.all([sourceClient.getApplicationsWithBinaries(), destinationClient.getApplications()]);
 
+        const [sourceEplFiles, destEplFiles] = await Promise.all([sourceClient.getEplFiles(), destinationClient.getEplFiles()]);
+
         const [
             sourceDashboards, sourceGroups, sourceDevices, sourceSimulators, sourceSmartRules, sourceBinaries, sourceOtherMOs,
             destDashboards, destGroups, destDevices, destSimulators, destSmartRules, destBinaries, destOtherMOs
@@ -89,6 +95,7 @@ export class MigrateComponent {
         ]);
 
         const selectedApps = sourceApps.filter(app => this.selectionService.isSelected(app.id));
+        const selectedEplFiles = sourceEplFiles.filter(eplFile => this.selectionService.isSelected(eplFile.id));
         const selectedDashboards = sourceDashboards.filter(dashboard => this.selectionService.isSelected(dashboard.id));
         const selectedGroups = sourceGroups.filter(group => this.selectionService.isSelected(group.id));
         const selectedDevices = sourceDevices.filter(device => this.selectionService.isSelected(device.id));
@@ -119,6 +126,13 @@ export class MigrateComponent {
             application,
             updateExisting: this.findExistingApplication(application, destApps)
         }));
+
+        this.eplFileMigrations = selectedEplFiles.map(eplFile => ({
+            newName: eplFile.name,
+            eplFile: eplFile,
+            updateExisting: this.findExistingEplFile(eplFile, destEplFiles)
+        }));
+
         this.dashboardMigrations = selectedDashboards.map(dashboard => {
             const dashboardName = getDashboardName(dashboard);
             return {
@@ -163,17 +177,34 @@ export class MigrateComponent {
         return getDashboardName(m);
     }
 
-    toggleEditMode(object: ManagedObjectMigration | ApplicationMigration) {
+    toggleEditMode(object: ManagedObjectMigration | ApplicationMigration | EplFileMigration) {
         if (this.isInEditMode(object)) {
             this.editing = undefined;
         } else {
-            this.editing = object.hasOwnProperty('managedObject') ? (object as ManagedObjectMigration).managedObject.id.toString() : (object as ApplicationMigration).application.id.toString();
+            this.editing = this.getObjectId(object);
         }
         this.dirty = true;
     }
 
-    isInEditMode(object: ManagedObjectMigration | ApplicationMigration) {
-        return this.editing === (object.hasOwnProperty('managedObject') ? (object as ManagedObjectMigration).managedObject.id.toString() : (object as ApplicationMigration).application.id.toString());
+    isInEditMode(object: ManagedObjectMigration | ApplicationMigration | EplFileMigration) {
+        let objectId = this.getObjectId(object);
+        return this.editing && this.editing === objectId;
+    }
+
+    getObjectId(object: ManagedObjectMigration | ApplicationMigration | EplFileMigration) : string {
+        if (object.hasOwnProperty('managedObject')) {
+            return (object as ManagedObjectMigration).managedObject.id.toString();
+        }
+
+        if (object.hasOwnProperty('application')) {
+            return (object as ApplicationMigration).application.id.toString();
+        }
+
+        if (object.hasOwnProperty('eplFile')) {
+            return (object as EplFileMigration).eplFile.id.toString();
+        }
+
+        return undefined;
     }
 
     resetApplicationMigration(appMigration: ApplicationMigration) {
@@ -204,6 +235,14 @@ export class MigrateComponent {
         }
     }
 
+    resetEplFileMigration(eplFileMigration: EplFileMigration) {
+        if (eplFileMigration.updateExisting) {
+            eplFileMigration.newName = eplFileMigration.updateExisting.name;
+        } else {
+            eplFileMigration.newName = eplFileMigration.eplFile.name;
+        }
+    }
+
     canMigrate(): boolean {
         return this.appMigrations.length > 0
             || this.dashboardMigrations.length > 0
@@ -211,6 +250,7 @@ export class MigrateComponent {
             || this.deviceMigrations.length > 0
             || this.simulatorMigrations.length > 0
             || this.smartRuleMigrations.length > 0
+            || this.eplFileMigrations.length > 0
             || this.binaryMigrations.length > 0
             || this.otherMigrations.length > 0;
     }
@@ -242,7 +282,8 @@ export class MigrateComponent {
         const lastLogSubscriber = migration.log$.subscribe(lastLogMessage);
 
         try {
-            await migration.migrate(this.deviceMigrations, this.simulatorMigrations, this.groupMigrations, this.otherMigrations, this.smartRuleMigrations, this.dashboardMigrations, this.binaryMigrations, this.appMigrations);
+            await migration.migrate(this.deviceMigrations, this.simulatorMigrations, this.groupMigrations, this.otherMigrations, 
+                this.smartRuleMigrations, this.dashboardMigrations, this.binaryMigrations, this.appMigrations, this.eplFileMigrations);
 
             if (destinationClient instanceof FileDataClient) {
                 alrt.update("Opening...");
@@ -312,6 +353,18 @@ export class MigrateComponent {
         this.dirty = true;
     }
 
+    async changeEplFileMigrationUpdateExisting(eplFile: EplFileMigration, existingId: string | undefined) {
+        if (existingId) {
+            const destinationClient = this.dataService.getDestinationDataClient();
+            eplFile.updateExisting = (await destinationClient.getEplFiles()).find(eplFileUpdat => eplFile.eplFile.id.toString() === existingId);
+        } else {
+            eplFile.updateExisting = undefined;
+        }
+
+        this.resetEplFileMigration(eplFile);
+        this.dirty = true;
+    }
+
     findExistingManagedObject(m: IManagedObject, existingList: IManagedObject[]) {
         const filteredList = existingList.filter(existing => m.name === existing.name);
 
@@ -333,6 +386,13 @@ export class MigrateComponent {
             (filteredList.length > 0 ? filteredList[0] : undefined);
     }
 
+    findExistingEplFile(eplFile: IEplFileConfiguration, existingList: IEplFileConfiguration[]) {
+        const filteredList = existingList.filter(existing => eplFile.name === existing.name);
+
+        return filteredList.find(existing => existing.id.toString() === eplFile.id.toString()) ||
+            (filteredList.length > 0 ? filteredList[0] : undefined);
+    }
+
     reset() {
         this.dataService.getSourceDataClient().invalidateCache();
         this.dataService.getDestinationDataClient().invalidateCache();
@@ -349,6 +409,7 @@ export class MigrateComponent {
             ...this.deviceMigrations,
             ...this.simulatorMigrations,
             ...this.smartRuleMigrations,
+            ...this.eplFileMigrations,
             ...this.binaryMigrations,
             ...this.otherMigrations
         ].forEach(migration => {

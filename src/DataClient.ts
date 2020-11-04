@@ -22,6 +22,7 @@ import {getIdPathsFromApplication, getIdPathsFromDashboard, getSimulatorId} from
 import {IExternalId} from "./c8y-interfaces/IExternalId";
 import {ISimulatorConfig} from "./c8y-interfaces/ISimulatorConfig";
 import {ISmartRuleConfig} from "./c8y-interfaces/ISmartRuleConfig";
+import { IEplFileConfiguration } from "./c8y-interfaces/IEplFileConfig";
 
 export abstract class DataClient {
     abstract getBinaryBlob(binary: IManagedObject, onProgress?: (progress: number) => any): Promise<Blob>;
@@ -30,6 +31,7 @@ export abstract class DataClient {
     abstract getExternalIdsFor(managedObjectId: string | number, cached?: boolean): Promise<IExternalId[]>;
     abstract getAllManagedObjects(cached?: boolean): Promise<IManagedObject[]>;
     abstract getUser(): Promise<ICurrentUser>;
+    abstract getEplFiles(cached?: boolean) : Promise<IEplFileConfiguration[]>;
 
     /**
      * Gets the base URL or undefined if not available
@@ -44,6 +46,7 @@ export abstract class DataClient {
     abstract createManagedObject(managedObject: IManagedObject): Promise<string | number>;
     abstract createSimulator(simulatorConfig: Partial<ISimulatorConfig>): Promise<{ simulatorId: string, deviceIds: (string | number)[]}>;
     abstract createSmartRule(smartRuleConfig: ISmartRuleConfig): Promise<string|number>;
+    abstract createEplFile(eplFileConfiguration: IEplFileConfiguration) : Promise<string|number>;
     abstract createBinary(binary: IManagedObject, blob: Blob): Promise<string|number>;
     abstract createLinkages(
         managedObjectId: string,
@@ -60,6 +63,7 @@ export abstract class DataClient {
     abstract updateApplication(app: IApplication, blob?: Blob): Promise<string | number>;
     abstract updateBinary(binary: IManagedObject, blob: Blob): Promise<string | number>;
     abstract updateManagedObject(managedObject: IManagedObject): Promise<string | number>;
+    abstract updateEplFile(eplFileConfiguration: IEplFileConfiguration) : Promise<string|number>;
     abstract updateSimulator(simulatorConfig: Partial<ISimulatorConfig>): Promise<{ simulatorId: string, deviceIds: (string | number)[]}>;
     abstract updateSmartRule(smartRuleConfig: Partial<ISmartRuleConfig>): Promise<string | number>;
 
@@ -94,17 +98,18 @@ export abstract class DataClient {
     }
 
     async getOtherManagedObjects(cached = true): Promise<IManagedObject[]> {
-        const [allManagedObjects, binaries, dashboards, groups, devices, simulators, smartRules] = await Promise.all([
+        const [allManagedObjects, binaries, dashboards, groups, devices, simulators, smartRules, eplFiles] = await Promise.all([
             this.getAllManagedObjects(cached),
             this.getBinaries(true),
             this.getDashboards(true),
             this.getGroups(true),
             this.getDevices(true),
             this.getSimulators(true),
-            this.getSmartRules(true)
+            this.getSmartRules(true),
+            this.getEplFiles(true),
         ]);
 
-        const usedIds = [...binaries, ...dashboards, ...groups, ...devices, ...simulators, ...smartRules].map(mo => mo.id.toString());
+        const usedIds = [...binaries, ...dashboards, ...groups, ...devices, ...simulators, ...smartRules, ...eplFiles].map(mo => mo.id.toString());
 
         return allManagedObjects
             .filter(mo => !usedIds.some(usedId => usedId === mo.id.toString()));

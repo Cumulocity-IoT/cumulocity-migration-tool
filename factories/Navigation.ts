@@ -72,6 +72,12 @@ source.add(new NavigatorNode({
   priority: 96
 }));
 source.add(new NavigatorNode({
+  label: _('Epl Files'),
+  icon: 'c8y-smart-rules',
+  path: '/source/eplfiles',
+  priority: 96
+}));
+source.add(new NavigatorNode({
   label: _('Binaries'),
   icon: 'c8y-archive',
   path: '/source/binary',

@@ -26,24 +26,25 @@ import {
     HOOK_NAVIGATOR_NODES,
     BootstrapComponent
 } from '@c8y/ngx-components';
-import {FormsModule} from "@angular/forms";
-import {FileSizePipe} from "./src/pipes/filesize.pipe";
-import {CredentialsComponent as SourceCredentialsComponent} from "./src/source/credentials/credentials.component";
-import {CredentialsComponent as DestinationCredentialsComponent} from "./src/destination/credentials/credentials.component";
-import {CredentialsService} from "./src/credentials.service";
-import {CredentialsGuard as SourceCredentialsGuard} from "./src/source/credentials.guard";
-import {CredentialsGuard as DestinationCredentialsGuard} from "./src/destination/credentials.guard";
-import {CredentialsGuard as MigrateCredentialsGuard} from "./src/migrate/credentials.guard";
-import {DataService} from "./src/data.service";
-import {DashboardComponent} from "./src/source/dashboard/dashboard.component";
-import {GroupComponent} from "./src/source/group/group.component";
-import {DeviceComponent} from "./src/source/device/device.component";
-import {TenantLoginComponent} from "./src/tenantlogin/tenantlogin.component";
-import {MigrateComponent} from "./src/migrate/migrate.component";
-import {MainComponent} from "./src/main/main.component";
+import { FormsModule } from "@angular/forms";
+import { FileSizePipe } from "./src/pipes/filesize.pipe";
+import { CredentialsComponent as SourceCredentialsComponent } from "./src/source/credentials/credentials.component";
+import { CredentialsComponent as DestinationCredentialsComponent } from "./src/destination/credentials/credentials.component";
+import { CredentialsService } from "./src/credentials.service";
+import { CredentialsGuard as SourceCredentialsGuard } from "./src/source/credentials.guard";
+import { CredentialsGuard as DestinationCredentialsGuard } from "./src/destination/credentials.guard";
+import { CredentialsGuard as MigrateCredentialsGuard } from "./src/migrate/credentials.guard";
+import { DataService } from "./src/data.service";
+import { DashboardComponent } from "./src/source/dashboard/dashboard.component";
+import { GroupComponent } from "./src/source/group/group.component";
+import { DeviceComponent } from "./src/source/device/device.component";
+import { TenantLoginComponent } from "./src/tenantlogin/tenantlogin.component";
+import { MigrateComponent } from "./src/migrate/migrate.component";
+import { MainComponent } from "./src/main/main.component";
 import { ButtonsModule } from 'ngx-bootstrap/buttons';
-import {currentTenantClientFactory} from "./src/currentclient.service";
-import {AlarmService, ApplicationService, FetchClient, AuditService, EventService, InventoryService, InventoryRoleService,
+import { currentTenantClientFactory } from "./src/currentclient.service";
+import {
+    AlarmService, ApplicationService, FetchClient, AuditService, EventService, InventoryService, InventoryRoleService,
     InventoryBinaryService,
     MeasurementService,
     OperationService,
@@ -57,22 +58,25 @@ import {AlarmService, ApplicationService, FetchClient, AuditService, EventServic
     UserGroupService,
     UserRoleService,
     TenantOptionsService,
-    DeviceRegistrationBulkService} from '@c8y/client';
-import {OtherComponent} from "./src/source/other/other.component";
-import {SimulatorComponent} from "./src/source/simulator/simulator.component";
-import {SmartRuleComponent} from "./src/source/smartrule/smart-rule.component";
-import {LandingPageComponent} from "./src/landingpage/landing-page.component";
-import {ModalModule} from "ngx-bootstrap/modal";
-import {SelectDeviceComponent} from "./src/migrate/selectdevice/select-device.component";
-import {MigrateLeaveGuard} from "./src/migrate/migrate-leave.guard";
-import {BinaryComponent} from "./src/source/binary/binary.component";
-import {SelectGroupComponent} from "./src/migrate/selectgroup/select-group.component";
-import {SelectOtherComponent} from "./src/migrate/selectother/select-other.component";
-import {SelectDashboardComponent} from "./src/migrate/selectdashboard/select-dashboard.component";
-import {SelectApplicationComponent} from "./src/migrate/selectapplication/select-application.component";
-import {SelectSimulatorComponent} from "./src/migrate/selectsimulator/select-simulator.component";
-import {SelectSmartRuleComponent} from "./src/migrate/selectsmartrule/select-smart-rule.component";
-import {SelectBinaryComponent} from "./src/migrate/selectbinary/select-binary.component";
+    DeviceRegistrationBulkService
+} from '@c8y/client';
+import { OtherComponent } from "./src/source/other/other.component";
+import { SimulatorComponent } from "./src/source/simulator/simulator.component";
+import { SmartRuleComponent } from "./src/source/smartrule/smart-rule.component";
+import { LandingPageComponent } from "./src/landingpage/landing-page.component";
+import { EplFilesComponent } from './src/source/eplfiles/epl-files.component';
+import { ModalModule } from "ngx-bootstrap/modal";
+import { SelectDeviceComponent } from "./src/migrate/selectdevice/select-device.component";
+import { MigrateLeaveGuard } from "./src/migrate/migrate-leave.guard";
+import { BinaryComponent } from "./src/source/binary/binary.component";
+import { SelectGroupComponent } from "./src/migrate/selectgroup/select-group.component";
+import { SelectOtherComponent } from "./src/migrate/selectother/select-other.component";
+import { SelectDashboardComponent } from "./src/migrate/selectdashboard/select-dashboard.component";
+import { SelectApplicationComponent } from "./src/migrate/selectapplication/select-application.component";
+import { SelectSimulatorComponent } from "./src/migrate/selectsimulator/select-simulator.component";
+import { SelectSmartRuleComponent } from "./src/migrate/selectsmartrule/select-smart-rule.component";
+import { SelectBinaryComponent } from "./src/migrate/selectbinary/select-binary.component";
+import { SelectEplFileComponent } from './src/migrate/selecteplfile/select-epl-file.component';
 
 /**
  * Angular Routes.
@@ -113,7 +117,11 @@ const appRoutes: Routes = [
                 path: 'source/smartrule',
                 component: SmartRuleComponent,
                 canActivate: [SourceCredentialsGuard]
-            },{
+            }, {
+                path: 'source/eplfiles',
+                component: EplFilesComponent,
+                canActivate: [SourceCredentialsGuard]
+            }, {
                 path: 'source/binary',
                 component: BinaryComponent,
                 canActivate: [SourceCredentialsGuard]
@@ -151,6 +159,7 @@ const appRoutes: Routes = [
         DeviceComponent,
         SimulatorComponent,
         SmartRuleComponent,
+        EplFilesComponent,
         BinaryComponent,
         OtherComponent,
         MigrateComponent,
@@ -162,57 +171,60 @@ const appRoutes: Routes = [
         SelectApplicationComponent,
         SelectSimulatorComponent,
         SelectSmartRuleComponent,
+        SelectEplFileComponent,
         SelectBinaryComponent
     ],
-  imports: [
-    BrowserModule,
-    RouterModule.forRoot(appRoutes, { enableTracing: false, useHash: true }),
-    // Import the CoreModule to allow use of the `c8y-` prefixed components
-    CoreModule,
-    // Import the CommonModule to allow use of data access and translations
-    CommonModule,
-    FormsModule,
-    ButtonsModule.forRoot(),
-    ModalModule.forRoot()
-  ],
-  /**
-   * Use our predefined InjectionTokens and provide your own classes to extend behaviour
-   * and functionality of existing ones. Implement your own NavigationNodes, Tabs, Actions and Breadcrumbs
-   */
-  providers: [
-    DataService,
-    CredentialsService,
-    { provide: HOOK_NAVIGATOR_NODES, useClass: ExampleNavigationFactory, multi: true},
-    { provide: 'currentClient', useFactory: currentTenantClientFactory, deps: [
-        AlarmService,
-        ApplicationService,
-        AuditService,
-        FetchClient,
-        DeviceRegistrationService,
-        DeviceRegistrationBulkService,
-        EventService,
-        InventoryService,
-        InventoryRoleService,
-        InventoryBinaryService,
-        MeasurementService,
-        OperationService,
-        OperationBulkService,
-        TenantSecurityOptionsService,
-        SystemOptionsService,
-        TenantOptionsService,
-        Realtime,
-        InventoryRoleService,
-        TenantService,
-        UserService,
-        UserGroupService,
-        UserRoleService
-    ]}
-  ],
-  /**
-   * Bootstrap your application with the BootstrapComponent which will use the `<c8y-bootstrap>`
-   * component to initialize the root application. Alternatively you can bootstrap
-   * a component of your choice and include that tag into its template or only reuse the given components
-   */
-  bootstrap: [BootstrapComponent]
+    imports: [
+        BrowserModule,
+        RouterModule.forRoot(appRoutes, { enableTracing: false, useHash: true }),
+        // Import the CoreModule to allow use of the `c8y-` prefixed components
+        CoreModule,
+        // Import the CommonModule to allow use of data access and translations
+        CommonModule,
+        FormsModule,
+        ButtonsModule.forRoot(),
+        ModalModule.forRoot()
+    ],
+    /**
+     * Use our predefined InjectionTokens and provide your own classes to extend behaviour
+     * and functionality of existing ones. Implement your own NavigationNodes, Tabs, Actions and Breadcrumbs
+     */
+    providers: [
+        DataService,
+        CredentialsService,
+        { provide: HOOK_NAVIGATOR_NODES, useClass: ExampleNavigationFactory, multi: true },
+        {
+            provide: 'currentClient', useFactory: currentTenantClientFactory, deps: [
+                AlarmService,
+                ApplicationService,
+                AuditService,
+                FetchClient,
+                DeviceRegistrationService,
+                DeviceRegistrationBulkService,
+                EventService,
+                InventoryService,
+                InventoryRoleService,
+                InventoryBinaryService,
+                MeasurementService,
+                OperationService,
+                OperationBulkService,
+                TenantSecurityOptionsService,
+                SystemOptionsService,
+                TenantOptionsService,
+                Realtime,
+                InventoryRoleService,
+                TenantService,
+                UserService,
+                UserGroupService,
+                UserRoleService
+            ]
+        }
+    ],
+    /**
+     * Bootstrap your application with the BootstrapComponent which will use the `<c8y-bootstrap>`
+     * component to initialize the root application. Alternatively you can bootstrap
+     * a component of your choice and include that tag into its template or only reuse the given components
+     */
+    bootstrap: [BootstrapComponent]
 })
 export class AppModule { }

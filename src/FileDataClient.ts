@@ -22,16 +22,19 @@ import _ from "lodash";
 import {IExternalId} from "./c8y-interfaces/IExternalId";
 import {ISimulatorConfig} from "./c8y-interfaces/ISimulatorConfig";
 import {ISmartRuleConfig} from "./c8y-interfaces/ISmartRuleConfig";
+import { IEplFileConfiguration } from "./c8y-interfaces/IEplFileConfig";
 
 export interface ExportJsonFormat {
     applications: IApplication[],
     managedObjects: IManagedObject[],
+    eplFiles: IEplFileConfiguration[],
     externalIds: {
         [key: string]: IExternalId[]
     }
 }
 
 export class FileDataClient extends DataClient {
+        
     private readonly exportJsonFormat: Promise<ExportJsonFormat>;
 
     private currentManagedObjectId = 1000;
@@ -51,6 +54,7 @@ export class FileDataClient extends DataClient {
             zip.file('data.json', JSON.stringify({
                 applications: [],
                 managedObjects: [],
+                eplFiles: [],
                 externalIds: {}
             }));
             zip.folder('binaries');
@@ -80,6 +84,10 @@ export class FileDataClient extends DataClient {
 
     async getAllManagedObjects(): Promise<IManagedObject[]> {
         return (await this.exportJsonFormat).managedObjects;
+    }
+
+    async getEplFiles(cached?: boolean): Promise<IEplFileConfiguration[]> {
+        return (await this.exportJsonFormat).eplFiles;
     }
 
     async getUser(): Promise<ICurrentUser> {
@@ -126,6 +134,19 @@ export class FileDataClient extends DataClient {
         zip.file('data.json', JSON.stringify(await this.exportJsonFormat, undefined, 2));
         this.file = await zip.generateAsync({type: 'blob'});
         return app.id;
+    }
+
+    async createEplFile(eplFileConfiguration: IEplFileConfiguration): Promise<string | number> {
+        eplFileConfiguration = _.cloneDeep(eplFileConfiguration) as IEplFileConfiguration;
+        eplFileConfiguration.id = this.getNextManagedObjectId();
+
+        const json = await this.exportJsonFormat;
+        json.eplFiles.push(eplFileConfiguration);
+
+        const zip = (await JSZip.loadAsync(this.file));
+        zip.file('data.json', JSON.stringify(await this.exportJsonFormat, undefined, 2));
+        this.file = await zip.generateAsync({type: 'blob'});
+        return eplFileConfiguration.id;
     }
 
     async createManagedObject(managedObject: IManagedObject): Promise<string | number> {
@@ -251,6 +272,11 @@ export class FileDataClient extends DataClient {
     updateBinary(binary: IManagedObject, blob: Blob): Promise<string | number> {
         // No need to implement this... we always create a new file
         throw Error("Unimplemented: Can't update a binary in a file");
+    }
+
+    async updateEplFile(eplFileConfiguration: IEplFileConfiguration): Promise<string | number> {
+        // No need to implement this... we always create a new file
+        throw Error("Unimplemented: Can't update a epl file in a file");
     }
 
     updateSimulator(simulatorConfig: Partial<ISimulatorConfig>): Promise<{ simulatorId: string; deviceIds: (string | number)[] }> {
