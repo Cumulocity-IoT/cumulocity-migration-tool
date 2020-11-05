@@ -73,7 +73,7 @@ source.add(new NavigatorNode({
 }));
 source.add(new NavigatorNode({
   label: _('Epl Files'),
-  icon: 'c8y-smart-rules',
+  icon: 'c8y-analytic-model',
   path: '/source/eplfiles',
   priority: 96
 }));
