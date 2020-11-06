@@ -7,6 +7,7 @@
     "start": "c8ycli server --env.extraWebpackConfig=./extra-webpack.config.js",
     "build": "c8ycli build --env.extraWebpackConfig=./extra-webpack.config.js",
     "deploy": "c8ycli deploy --env.extraWebpackConfig=./extra-webpack.config.js",
+    "preinstall": "npx npm-force-resolutions",
     "postinstall": "patch-package"
   },
   "keywords": [
@@ -18,6 +19,9 @@
   "repository": "github:SoftwareAG/cumulocity-migration-tool",
   "author": "Richard Peach - Software AG",
   "license": "Apache-2.0",
+  "resolutions": {
+    "graceful-fs": "^4.2.4"
+  },
   "dependencies": {
     "@angular/animations": "7.2.2",
     "@angular/common": "7.2.2",

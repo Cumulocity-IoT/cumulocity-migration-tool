@@ -12,6 +12,7 @@ import {
 import {IExternalId} from "../c8y-interfaces/IExternalId";
 import {Subject} from "rxjs";
 import {ISmartRuleConfig} from "../c8y-interfaces/ISmartRuleConfig";
+import { IEplFileConfiguration } from "src/c8y-interfaces/IEplFileConfig";
 
 export interface ApplicationMigration {
     newName: string,
@@ -25,6 +26,12 @@ export interface ManagedObjectMigration {
     newName: string,
     managedObject: IManagedObject,
     updateExisting?: IManagedObject
+}
+
+export interface EplFileMigration {
+    newName: string,
+    eplFile: IEplFileConfiguration,
+    updateExisting?: IEplFileConfiguration
 }
 
 export enum MigrationLogLevel {
@@ -61,7 +68,11 @@ export class Migration {
 
     constructor(private sourceClient: DataClient, private destinationClient: DataClient) {}
 
-    async migrate(deviceMigrations: ManagedObjectMigration[], simulatorMigrations: ManagedObjectMigration[], groupMigrations: ManagedObjectMigration[], otherMigrations: ManagedObjectMigration[], smartRuleMigrations: ManagedObjectMigration[], dashboardMigrations: ManagedObjectMigration[], binaryMigrations: ManagedObjectMigration[], appMigrations: ApplicationMigration[]) {
+    async migrate(deviceMigrations: ManagedObjectMigration[], simulatorMigrations: ManagedObjectMigration[], 
+        groupMigrations: ManagedObjectMigration[], otherMigrations: ManagedObjectMigration[], 
+        smartRuleMigrations: ManagedObjectMigration[], dashboardMigrations: ManagedObjectMigration[], 
+        binaryMigrations: ManagedObjectMigration[], appMigrations: ApplicationMigration[],
+        eplFileMigrations: EplFileMigration[]) {
         // Separate the simulated devices from the non-simulated devices
         const [simulatorDeviceMigrations, nonSimulatorDeviceMigrations] = _.partition(deviceMigrations, deviceMigration => {
             if (!isSimulatorDevice(deviceMigration.managedObject)) return false;
@@ -151,6 +162,20 @@ export class Migration {
             } else {
                 this.log$.next(MigrationLogEvent.verbose(`Migrating: ${srMigration.managedObject.id} - Creating new smart rule.`));
                 oldIdsToNewIds.set(srMigration.managedObject.id.toString(), await this.destinationClient.createSmartRule(this.smartRuleMigrationToSmartRuleConfig(srMigration, oldIdsToNewIds)));
+            }
+        }
+
+        // Migrate the Epl Files
+        this.log$.next(MigrationLogEvent.info("Migrating Epl Files..."));
+        for (let eplFileMigration of eplFileMigrations) {
+            if (eplFileMigration.updateExisting) {
+                this.log$.next(MigrationLogEvent.verbose(`Migrating: ${eplFileMigration.eplFile.id} - Updating existing Epl File.`));
+                const eplFile = this.eplFileMigrationToEplFileConfiguration(eplFileMigration, oldIdsToNewIds);
+                eplFile.id = eplFileMigration.updateExisting.id;
+                oldIdsToNewIds.set(eplFileMigration.eplFile.id.toString(), await this.destinationClient.updateEplFile(eplFile));
+            } else {
+                this.log$.next(MigrationLogEvent.verbose(`Migrating: ${eplFileMigration.eplFile.id} - Creating new Epl File.`));
+                oldIdsToNewIds.set(eplFileMigration.eplFile.id.toString(), await this.destinationClient.createEplFile(this.eplFileMigrationToEplFileConfiguration(eplFileMigration, oldIdsToNewIds)));
             }
         }
 
@@ -408,6 +433,13 @@ export class Migration {
             result.enabledSources = result.enabledSources.map(enabledSource => oldDeviceIdToNew.has(enabledSource) ? oldDeviceIdToNew.get(enabledSource).toString() : enabledSource);
         }
 
+        return result;
+    }
+
+    eplFileMigrationToEplFileConfiguration(eplFileMigration: EplFileMigration, oldDeviceIdToNew: Map<string, string|number>) : IEplFileConfiguration {
+        const result: IEplFileConfiguration = _.cloneDeep(eplFileMigration.eplFile);
+        result.name = eplFileMigration.newName;
+        
         return result;
     }
 }

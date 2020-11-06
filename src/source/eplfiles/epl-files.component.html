@@ -1,0 +1,22 @@
+<c8y-title translate>Epl Files</c8y-title>
+<c8y-action-bar-item [placement]="'right'">
+    <button class="btn btn-link" style="margin-top: 5px;" (click)="reload()">
+        <i class="fa fa-refresh"></i> {{'Reload' | translate}}
+    </button>
+</c8y-action-bar-item>
+<table class="table table-hover" *ngIf="allEplFiles | async as eplFiles">
+    <tr>
+        <th></th>
+        <th translate>Id</th>
+        <th translate>Name</th>
+        <th translate>State</th>
+        <th></th>
+    </tr>
+    <tr *ngFor="let eplFile of eplFiles; trackBy: trackById" (click)="toggleSelection(eplFile)" [class.info]="isSelected(eplFile)">
+        <td><input type="checkbox" [checked]="isSelected(eplFile)" /></td>
+        <td>{{eplFile.id}}</td>
+        <td>{{eplFile.name}}</td>
+        <td>{{eplFile.state}}</td>
+        <td><button class="btn btn-default" (click)="viewEplFile($event, eplFile)" translate>View Contents</button></td>
+    </tr>
+</table>

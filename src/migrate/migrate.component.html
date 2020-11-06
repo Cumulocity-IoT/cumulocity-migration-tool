@@ -236,6 +236,37 @@
             </td>
         </tr>
     </tbody>
+    <tbody *ngIf="!!eplFileMigrations?.length">
+        <tr class="summary-header">
+            <th colspan="10">Epl Files ({{eplFileMigrations.length}})</th>
+        </tr>
+        <tr>
+            <th>ID</th>
+            <th colspan="3">Name</th>
+            <th class="creation-mode">Creation Mode</th>
+            <th>ID</th>
+            <th colspan="3">New Name</th>
+            <th></th>
+        </tr>
+        <tr *ngFor="let eplFile of eplFileMigrations" class="hoverable">
+            <td>{{eplFile.eplFile.id}}</td>
+            <td colspan="3">{{eplFile.eplFile.name}}</td>
+            <td class="creation-mode">
+                {{eplFile.updateExisting ? 'Update' : 'Create'}}
+                <selectEplFile #modal [selected]="eplFile.updateExisting?.id" (selectedChange)="changeEplFileMigrationUpdateExisting(eplFile, $event)"></selectEplFile>
+                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
+            </td>
+            <td>{{eplFile.updateExisting?.id || '-'}}</td>
+            <td colspan="3">
+                <input *ngIf="isInEditMode(eplFile); else notEditMode" class="form-control" [(ngModel)]="eplFile.newName"/>
+                <ng-template #notEditMode>{{eplFile.newName}}</ng-template>
+            </td>
+            <td class="text-right">
+                <a *ngIf="isInEditMode(eplFile)" class="btn btn-primary" (click)="resetEplFileMigration(eplFile)"><i class="fa fa-undo"></i></a>
+                <a class="btn btn-primary" (click)="toggleEditMode(eplFile)"><i class="fa fa-pencil"></i></a>
+            </td>
+        </tr>
+    </tbody>
     <tbody *ngIf="!!binaryMigrations?.length">
         <tr class="summary-header">
             <th colspan="10">Binaries ({{binaryMigrations.length}})</th>
@@ -325,6 +356,24 @@
     <ul>
         <li>The server is not responding</li>
         <li>Simulators are not enabled on the tenant</li>
+        <li>There is a CORS issue</li>
+    </ul>
+    <br/>
+    To fix the CORS errors:<br/>
+    <ol>
+        <li>Migrate the migration-tool app to the destination server</li>
+        <li>Use the migration-tool on the destination server</li>
+        <li>Set the destination to <code>Current Tenant</code></li>
+    </ol>
+</ng-template>
+
+<ng-template #ApamaError>
+    <h4 class="alert-heading">Cannot access the Apama EPL Apps</h4>
+    <br/>
+    The cause may be one of the following: <br/>
+    <ul>
+        <li>The server is not responding</li>
+        <li>Apama EPL Apps not enabled on the tenant</li>
         <li>There is a CORS issue</li>
     </ul>
     <br/>

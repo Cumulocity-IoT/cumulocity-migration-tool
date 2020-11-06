@@ -23,11 +23,13 @@ import {delay} from "./utils/utils";
 import {IExternalId} from "./c8y-interfaces/IExternalId";
 import {ISimulatorConfig} from "./c8y-interfaces/ISimulatorConfig";
 import {ISmartRuleConfig} from "./c8y-interfaces/ISmartRuleConfig";
+import { IEplFileConfiguration } from "./c8y-interfaces/IEplFileConfig";
 
 export class HttpDataClient extends DataClient {
     private applications: Promise<IApplication[]>;
     private allManagedObjects: Promise<IManagedObject[]>;
     private externalIds = new Map<string, Promise<IExternalId[]>>();
+    private eplFiles: Promise<IEplFileConfiguration[]>;
 
     constructor(private client: ClientLike) {
         super();
@@ -50,6 +52,28 @@ export class HttpDataClient extends DataClient {
         } else {
             return this.allManagedObjects = this.client.inventory.list({pageSize: 2000}).then(x => x.data)
         }
+    }
+
+    getEplFiles(cached?: boolean): Promise<IEplFileConfiguration[]> {
+        if (cached && this.eplFiles) {
+            return this.eplFiles;
+        } 
+
+        this.eplFiles = this.client.inventory.list({pageSize: 2000, type: 'apama_eplfile'}).then(({data}) => {
+            return data.map(eplFileRaw => {
+                  let eplFile = {
+                    id: _.get(eplFileRaw, 'id'),
+                    name: _.get(eplFileRaw, 'name'),
+                    description: _.get(eplFileRaw, 'apama_eplfile.description'),
+                    state: _.get(eplFileRaw, 'apama_eplfile.state'),
+                    contents: _.get(eplFileRaw, 'apama_eplfile.contents') 
+                  } as IEplFileConfiguration;
+
+                  return eplFile
+            });
+        })
+
+        return this.eplFiles;
     }
 
     async getBinaryBlob(binary: IManagedObject, onProgress?: (progress: number) => any) {
@@ -255,7 +279,32 @@ export class HttpDataClient extends DataClient {
         })).json()).id;
     }
 
-    async checkSupportFor(type: 'Simulators'|'SmartRules'): Promise<boolean> {
+    async createEplFile(eplFileConfiguration: IEplFileConfiguration): Promise<string | number> {
+        return (await(await this.client.core.fetch('/service/cep/eplfiles', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(eplFileConfiguration),
+        })).json()).id;
+    }
+
+    async updateEplFile(eplFileConfiguration: IEplFileConfiguration): Promise<string | number> {
+        return (await(await this.client.core.fetch(`/service/cep/eplfiles/${eplFileConfiguration.id.toString()}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: eplFileConfiguration.name,
+                contents: eplFileConfiguration.contents,
+                description: eplFileConfiguration.description,
+                state: eplFileConfiguration.state
+            }),
+        })).json()).id;
+    }
+
+    async checkSupportFor(type: 'Simulators'|'SmartRules'|'Apama'): Promise<boolean> {
         switch(type) {
             case 'Simulators': {
                 try {
@@ -269,6 +318,14 @@ export class HttpDataClient extends DataClient {
                 try {
                     const managedObject = (await this.getAllManagedObjects())[0];
                     const response = await this.client.core.fetch(`/service/smartrule/managedObjects/${managedObject.id}/smartrules`);
+                    return response.status >= 200 && response.status < 300;
+                } catch(e) {
+                    return false;
+                }
+            }
+            case 'Apama': {
+                try {
+                    const response = await this.client.core.fetch('/service/cep/eplfiles');
                     return response.status >= 200 && response.status < 300;
                 } catch(e) {
                     return false;
