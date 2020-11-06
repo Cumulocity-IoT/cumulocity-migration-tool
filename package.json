@@ -1,6 +1,6 @@
 {
   "name": "migration-tool",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A tool for migrating applications, dashboards, and other managed objects between Cumulocity Tenants",
   "main": "index.js",
   "scripts": {
