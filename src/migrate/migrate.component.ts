@@ -43,6 +43,7 @@ import { IEplFileConfiguration } from 'src/c8y-interfaces/IEplFileConfig';
 export class MigrateComponent {
     @ViewChild('SmartRuleError') smartRuleError: TemplateRef<any>;
     @ViewChild('SimulatorError') simulatorError: TemplateRef<any>;
+    @ViewChild('ApamaError') apamaError: TemplateRef<any>;
 
     from: string;
     to: string;
@@ -111,12 +112,21 @@ export class MigrateComponent {
             });
             selectedSmartRules.length = 0;
         }
+        
         if (selectedSimulators.length > 0 && !await destinationClient.checkSupportFor('Simulators')) {
             this.alertService.add({
                 type: 'danger',
                 text: this.simulatorError,
             });
             selectedSimulators.length = 0;
+        }
+
+        if (selectedEplFiles.length > 0 && !await destinationClient.checkSupportFor('Apama')) {
+            this.alertService.add({
+                type: 'danger',
+                text: this.apamaError,
+            });
+            selectedEplFiles.length = 0;
         }
 
         this.appMigrations = selectedApps.map(application => ({

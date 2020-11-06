@@ -366,3 +366,21 @@
         <li>Set the destination to <code>Current Tenant</code></li>
     </ol>
 </ng-template>
+
+<ng-template #ApamaError>
+    <h4 class="alert-heading">Cannot access the Apama EPL Apps</h4>
+    <br/>
+    The cause may be one of the following: <br/>
+    <ul>
+        <li>The server is not responding</li>
+        <li>Apama EPL Apps not enabled on the tenant</li>
+        <li>There is a CORS issue</li>
+    </ul>
+    <br/>
+    To fix the CORS errors:<br/>
+    <ol>
+        <li>Migrate the migration-tool app to the destination server</li>
+        <li>Use the migration-tool on the destination server</li>
+        <li>Set the destination to <code>Current Tenant</code></li>
+    </ol>
+</ng-template>

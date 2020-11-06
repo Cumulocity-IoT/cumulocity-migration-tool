@@ -304,7 +304,7 @@ export class HttpDataClient extends DataClient {
         })).json()).id;
     }
 
-    async checkSupportFor(type: 'Simulators'|'SmartRules'): Promise<boolean> {
+    async checkSupportFor(type: 'Simulators'|'SmartRules'|'Apama'): Promise<boolean> {
         switch(type) {
             case 'Simulators': {
                 try {
@@ -318,6 +318,14 @@ export class HttpDataClient extends DataClient {
                 try {
                     const managedObject = (await this.getAllManagedObjects())[0];
                     const response = await this.client.core.fetch(`/service/smartrule/managedObjects/${managedObject.id}/smartrules`);
+                    return response.status >= 200 && response.status < 300;
+                } catch(e) {
+                    return false;
+                }
+            }
+            case 'Apama': {
+                try {
+                    const response = await this.client.core.fetch('/service/cep/eplfiles');
                     return response.status >= 200 && response.status < 300;
                 } catch(e) {
                     return false;
