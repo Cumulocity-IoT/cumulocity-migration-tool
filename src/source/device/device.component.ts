@@ -98,4 +98,28 @@ export class DeviceComponent {
         this.dataClient.invalidateCache();
         this.load();
     }
+
+    async selectAll() {
+        this.allDevices.then((eplFiles) => {
+            eplFiles.forEach(eplFile => {
+                if (this.isSelected(eplFile)) {
+                    return;
+                }
+
+                this.toggleSelection(eplFile);
+            });
+        });
+    }
+
+    async deselectAll() {
+        this.allDevices.then((eplFiles) => {
+            eplFiles.forEach(eplFile => {
+                if (!this.isSelected(eplFile)) {
+                    return;
+                }
+
+                this.toggleSelection(eplFile);
+            });
+        });
+    }
 }

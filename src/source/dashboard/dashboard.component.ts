@@ -98,4 +98,28 @@ export class DashboardComponent {
         this.dataClient.invalidateCache();
         this.load();
     }
+
+    async selectAll() {
+        this.allDashboards.then((eplFiles) => {
+            eplFiles.forEach(eplFile => {
+                if (this.isSelected(eplFile)) {
+                    return;
+                }
+
+                this.toggleSelection(eplFile);
+            });
+        });
+    }
+
+    async deselectAll() {
+        this.allDashboards.then((eplFiles) => {
+            eplFiles.forEach(eplFile => {
+                if (!this.isSelected(eplFile)) {
+                    return;
+                }
+
+                this.toggleSelection(eplFile);
+            });
+        });
+    }
 }
