@@ -15,14 +15,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component} from '@angular/core';
-import {IManagedObject} from '@c8y/client';
-import {DataService} from "../../data.service";
-import {SelectionService} from "../../selection.service";
-import {sortById} from "../../utils/utils";
-import {DataClient} from 'src/DataClient';
-import {UpdateableAlert} from "../../utils/UpdateableAlert";
-import {AlertService} from "@c8y/ngx-components";
+import { Component } from '@angular/core';
+import { IManagedObject } from '@c8y/client';
+import { DataService } from "../../data.service";
+import { SelectionService } from "../../selection.service";
+import { sortById } from "../../utils/utils";
+import { DataClient } from 'src/DataClient';
+import { UpdateableAlert } from "../../utils/UpdateableAlert";
+import { AlertService } from "@c8y/ngx-components";
 import { IEplFileConfiguration } from 'src/c8y-interfaces/IEplFileConfig';
 
 @Component({
@@ -30,7 +30,7 @@ import { IEplFileConfiguration } from 'src/c8y-interfaces/IEplFileConfig';
 })
 export class EplFilesComponent {
     private dataClient: DataClient;
-    
+
     allEplFiles: Promise<IEplFileConfiguration[]>;
 
     constructor(private dataService: DataService, private selectionService: SelectionService, private alertService: AlertService) {
@@ -53,7 +53,7 @@ export class EplFilesComponent {
         }
     }
 
-    isSelected(o: {id: string|number}) {
+    isSelected(o: { id: string | number }) {
         return this.selectionService.isSelected(o.id);
     }
 
@@ -73,5 +73,29 @@ export class EplFilesComponent {
     reload() {
         this.dataClient.invalidateCache();
         this.load();
+    }
+
+    async selectAll() {
+        this.allEplFiles.then((eplFiles) => {
+            eplFiles.forEach(eplFile => {
+                if (this.isSelected(eplFile)) {
+                    return;
+                }
+
+                this.toggleSelection(eplFile);
+            });
+        });
+    }
+
+    async deselectAll() {
+        this.allEplFiles.then((eplFiles) => {
+            eplFiles.forEach(eplFile => {
+                if (!this.isSelected(eplFile)) {
+                    return;
+                }
+
+                this.toggleSelection(eplFile);
+            });
+        });
     }
 }

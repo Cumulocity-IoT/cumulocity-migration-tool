@@ -15,14 +15,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component} from '@angular/core';
-import {IManagedObject} from '@c8y/client';
-import {DataService} from "../../data.service";
-import {SelectionService} from "../../selection.service";
-import {delay, sortById} from "../../utils/utils";
-import {UpdateableAlert} from "../../utils/UpdateableAlert";
-import {AlertService} from "@c8y/ngx-components";
-import {DataClient} from 'src/DataClient';
+import { Component } from '@angular/core';
+import { IManagedObject } from '@c8y/client';
+import { DataService } from "../../data.service";
+import { SelectionService } from "../../selection.service";
+import { delay, sortById } from "../../utils/utils";
+import { UpdateableAlert } from "../../utils/UpdateableAlert";
+import { AlertService } from "@c8y/ngx-components";
+import { DataClient } from 'src/DataClient';
 import download from "downloadjs";
 
 @Component({
@@ -50,8 +50,8 @@ export class BinaryComponent {
             const alrt = new UpdateableAlert(this.alertService);
             this.selectionService.select(binary.id);
             alrt.update(`Searching for linked Groups and Devices...`);
-            const {groups, devices, simulators, smartRules, other, childParentLinks} = await this.dataClient.findLinkedFrom(binary);
-            childParentLinks.forEach(({child, parent}) => {
+            const { groups, devices, simulators, smartRules, other, childParentLinks } = await this.dataClient.findLinkedFrom(binary);
+            childParentLinks.forEach(({ child, parent }) => {
                 this.selectionService.select(child, parent);
             });
             alrt.update(`Links found: ${groups.length} Groups, ${devices.length} Devices, ${simulators.length} Simulators, ${smartRules.length} Smart Rules, ${other.length} Other`);
@@ -59,7 +59,7 @@ export class BinaryComponent {
         }
     }
 
-    isSelected(o: {id: string|number}) {
+    isSelected(o: { id: string | number }) {
         return this.selectionService.isSelected(o.id);
     }
 
@@ -95,5 +95,29 @@ export class BinaryComponent {
     reload() {
         this.dataClient.invalidateCache();
         this.load();
+    }
+
+    async selectAll() {
+        this.allBinaries.then((binaries) => {
+            binaries.forEach(binary => {
+                if (this.isSelected(binary)) {
+                    return;
+                }
+
+                this.toggleSelection(binary);
+            });
+        });
+    }
+
+    async deselectAll() {
+        this.allBinaries.then((binaries) => {
+            binaries.forEach(binary => {
+                if (!this.isSelected(binary)) {
+                    return;
+                }
+
+                this.toggleSelection(binary);
+            });
+        });
     }
 }

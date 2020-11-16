@@ -98,4 +98,28 @@ export class DeviceComponent {
         this.dataClient.invalidateCache();
         this.load();
     }
+
+    async selectAll() {
+        this.allDevices.then((devices) => {
+            devices.forEach(device => {
+                if (this.isSelected(device)) {
+                    return;
+                }
+
+                this.toggleSelection(device);
+            });
+        });
+    }
+
+    async deselectAll() {
+        this.allDevices.then((devices) => {
+            devices.forEach(device => {
+                if (!this.isSelected(device)) {
+                    return;
+                }
+
+                this.toggleSelection(device);
+            });
+        });
+    }
 }

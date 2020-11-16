@@ -15,14 +15,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component} from '@angular/core';
-import {IManagedObject} from '@c8y/client';
-import {DataService} from "../../data.service";
-import {SelectionService} from "../../selection.service";
-import {sortById} from "../../utils/utils";
-import {DataClient} from 'src/DataClient';
-import {UpdateableAlert} from "../../utils/UpdateableAlert";
-import {AlertService} from "@c8y/ngx-components";
+import { Component } from '@angular/core';
+import { IManagedObject } from '@c8y/client';
+import { DataService } from "../../data.service";
+import { SelectionService } from "../../selection.service";
+import { sortById } from "../../utils/utils";
+import { DataClient } from 'src/DataClient';
+import { UpdateableAlert } from "../../utils/UpdateableAlert";
+import { AlertService } from "@c8y/ngx-components";
 
 @Component({
     templateUrl: './simulator.component.html'
@@ -47,16 +47,16 @@ export class SimulatorComponent {
             const alrt = new UpdateableAlert(this.alertService);
             this.selectionService.select(simulator.id);
             alrt.update(`Searching for linked Groups and Devices...`);
-            const {groups, devices, simulators, smartRules, other, childParentLinks} = await this.dataClient.findLinkedFrom(simulator);
-            childParentLinks.forEach(({child, parent}) => {
+            const { groups, devices, simulators, smartRules, other, childParentLinks } = await this.dataClient.findLinkedFrom(simulator);
+            childParentLinks.forEach(({ child, parent }) => {
                 this.selectionService.select(child, parent);
             });
-            alrt.update(`Links found: ${groups.length} Groups, ${devices.length} Devices, ${simulators.length-1} Simulators, ${smartRules.length} Smart Rules, ${other.length} Other`);
+            alrt.update(`Links found: ${groups.length} Groups, ${devices.length} Devices, ${simulators.length - 1} Simulators, ${smartRules.length} Smart Rules, ${other.length} Other`);
             alrt.close(5000);
         }
     }
 
-    isSelected(o: {id: string|number}) {
+    isSelected(o: { id: string | number }) {
         return this.selectionService.isSelected(o.id);
     }
 
@@ -86,5 +86,29 @@ export class SimulatorComponent {
     reload() {
         this.dataClient.invalidateCache();
         this.load();
+    }
+
+    async selectAll() {
+        this.allSimulators.then((simulators) => {
+            simulators.forEach(simulator => {
+                if (this.isSelected(simulator)) {
+                    return;
+                }
+
+                this.toggleSelection(simulator);
+            });
+        });
+    }
+
+    async deselectAll() {
+        this.allSimulators.then((simulators) => {
+            simulators.forEach(simulator => {
+                if (!this.isSelected(simulator)) {
+                    return;
+                }
+
+                this.toggleSelection(simulator);
+            });
+        });
     }
 }

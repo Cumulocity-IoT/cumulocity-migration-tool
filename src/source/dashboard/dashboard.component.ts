@@ -98,4 +98,28 @@ export class DashboardComponent {
         this.dataClient.invalidateCache();
         this.load();
     }
+
+    async selectAll() {
+        this.allDashboards.then((dashobards) => {
+            dashobards.forEach(dashboard => {
+                if (this.isSelected(dashboard)) {
+                    return;
+                }
+
+                this.toggleSelection(dashboard);
+            });
+        });
+    }
+
+    async deselectAll() {
+        this.allDashboards.then((dashobards) => {
+            dashobards.forEach(dashboard => {
+                if (!this.isSelected(dashboard)) {
+                    return;
+                }
+
+                this.toggleSelection(dashboard);
+            });
+        });
+    }
 }
