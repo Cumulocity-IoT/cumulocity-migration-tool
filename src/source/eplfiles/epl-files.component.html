@@ -1,4 +1,14 @@
 <c8y-title translate>Epl Files</c8y-title>
+<c8y-action-bar-item [placement]="'left'">
+    <button class="btn btn-link" style="margin-top: 5px;" (click)="selectAll()">
+        <i class="fa fa-check"></i> {{'Select All' | translate}}
+    </button>
+</c8y-action-bar-item>
+<c8y-action-bar-item [placement]="'left'">
+    <button class="btn btn-link" style="margin-top: 5px;" (click)="deselectAll()">
+        <i class="fa fa-close"></i> {{'Deselect All' | translate}}
+    </button>
+</c8y-action-bar-item>
 <c8y-action-bar-item [placement]="'right'">
     <button class="btn btn-link" style="margin-top: 5px;" (click)="reload()">
         <i class="fa fa-refresh"></i> {{'Reload' | translate}}
@@ -12,7 +22,8 @@
         <th translate>State</th>
         <th></th>
     </tr>
-    <tr *ngFor="let eplFile of eplFiles; trackBy: trackById" (click)="toggleSelection(eplFile)" [class.info]="isSelected(eplFile)">
+    <tr *ngFor="let eplFile of eplFiles; trackBy: trackById" (click)="toggleSelection(eplFile)"
+        [class.info]="isSelected(eplFile)">
         <td><input type="checkbox" [checked]="isSelected(eplFile)" /></td>
         <td>{{eplFile.id}}</td>
         <td>{{eplFile.name}}</td>
