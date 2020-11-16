@@ -95,25 +95,25 @@ export class GroupComponent {
     }
 
     async selectAll() {
-        this.allGroups.then((eplFiles) => {
-            eplFiles.forEach(eplFile => {
-                if (this.isSelected(eplFile)) {
+        this.allGroups.then((groups) => {
+            groups.forEach(group => {
+                if (this.isSelected(group)) {
                     return;
                 }
 
-                this.toggleSelection(eplFile);
+                this.toggleSelection(group);
             });
         });
     }
 
     async deselectAll() {
-        this.allGroups.then((eplFiles) => {
-            eplFiles.forEach(eplFile => {
-                if (!this.isSelected(eplFile)) {
+        this.allGroups.then((groups) => {
+            groups.forEach(group => {
+                if (!this.isSelected(group)) {
                     return;
                 }
 
-                this.toggleSelection(eplFile);
+                this.toggleSelection(group);
             });
         });
     }

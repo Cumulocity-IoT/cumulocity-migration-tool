@@ -89,25 +89,25 @@ export class SimulatorComponent {
     }
 
     async selectAll() {
-        this.allSimulators.then((eplFiles) => {
-            eplFiles.forEach(eplFile => {
-                if (this.isSelected(eplFile)) {
+        this.allSimulators.then((simulators) => {
+            simulators.forEach(simulator => {
+                if (this.isSelected(simulator)) {
                     return;
                 }
 
-                this.toggleSelection(eplFile);
+                this.toggleSelection(simulator);
             });
         });
     }
 
     async deselectAll() {
-        this.allSimulators.then((eplFiles) => {
-            eplFiles.forEach(eplFile => {
-                if (!this.isSelected(eplFile)) {
+        this.allSimulators.then((simulators) => {
+            simulators.forEach(simulator => {
+                if (!this.isSelected(simulator)) {
                     return;
                 }
 
-                this.toggleSelection(eplFile);
+                this.toggleSelection(simulator);
             });
         });
     }

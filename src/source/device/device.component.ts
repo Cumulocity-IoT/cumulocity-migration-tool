@@ -100,25 +100,25 @@ export class DeviceComponent {
     }
 
     async selectAll() {
-        this.allDevices.then((eplFiles) => {
-            eplFiles.forEach(eplFile => {
-                if (this.isSelected(eplFile)) {
+        this.allDevices.then((devices) => {
+            devices.forEach(device => {
+                if (this.isSelected(device)) {
                     return;
                 }
 
-                this.toggleSelection(eplFile);
+                this.toggleSelection(device);
             });
         });
     }
 
     async deselectAll() {
-        this.allDevices.then((eplFiles) => {
-            eplFiles.forEach(eplFile => {
-                if (!this.isSelected(eplFile)) {
+        this.allDevices.then((devices) => {
+            devices.forEach(device => {
+                if (!this.isSelected(device)) {
                     return;
                 }
 
-                this.toggleSelection(eplFile);
+                this.toggleSelection(device);
             });
         });
     }

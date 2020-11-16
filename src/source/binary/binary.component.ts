@@ -98,25 +98,25 @@ export class BinaryComponent {
     }
 
     async selectAll() {
-        this.allBinaries.then((eplFiles) => {
-            eplFiles.forEach(eplFile => {
-                if (this.isSelected(eplFile)) {
+        this.allBinaries.then((binaries) => {
+            binaries.forEach(binary => {
+                if (this.isSelected(binary)) {
                     return;
                 }
 
-                this.toggleSelection(eplFile);
+                this.toggleSelection(binary);
             });
         });
     }
 
     async deselectAll() {
-        this.allBinaries.then((eplFiles) => {
-            eplFiles.forEach(eplFile => {
-                if (!this.isSelected(eplFile)) {
+        this.allBinaries.then((binaries) => {
+            binaries.forEach(binary => {
+                if (!this.isSelected(binary)) {
                     return;
                 }
 
-                this.toggleSelection(eplFile);
+                this.toggleSelection(binary);
             });
         });
     }

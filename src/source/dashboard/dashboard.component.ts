@@ -100,25 +100,25 @@ export class DashboardComponent {
     }
 
     async selectAll() {
-        this.allDashboards.then((eplFiles) => {
-            eplFiles.forEach(eplFile => {
-                if (this.isSelected(eplFile)) {
+        this.allDashboards.then((dashobards) => {
+            dashobards.forEach(dashboard => {
+                if (this.isSelected(dashboard)) {
                     return;
                 }
 
-                this.toggleSelection(eplFile);
+                this.toggleSelection(dashboard);
             });
         });
     }
 
     async deselectAll() {
-        this.allDashboards.then((eplFiles) => {
-            eplFiles.forEach(eplFile => {
-                if (!this.isSelected(eplFile)) {
+        this.allDashboards.then((dashobards) => {
+            dashobards.forEach(dashboard => {
+                if (!this.isSelected(dashboard)) {
                     return;
                 }
 
-                this.toggleSelection(eplFile);
+                this.toggleSelection(dashboard);
             });
         });
     }

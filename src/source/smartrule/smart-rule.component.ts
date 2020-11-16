@@ -89,25 +89,25 @@ export class SmartRuleComponent {
     }
 
     async selectAll() {
-        this.allSmartRules.then((eplFiles) => {
-            eplFiles.forEach(eplFile => {
-                if (this.isSelected(eplFile)) {
+        this.allSmartRules.then((smartRules) => {
+            smartRules.forEach(smartRule => {
+                if (this.isSelected(smartRule)) {
                     return;
                 }
 
-                this.toggleSelection(eplFile);
+                this.toggleSelection(smartRule);
             });
         });
     }
 
     async deselectAll() {
-        this.allSmartRules.then((eplFiles) => {
-            eplFiles.forEach(eplFile => {
-                if (!this.isSelected(eplFile)) {
+        this.allSmartRules.then((smartRules) => {
+            smartRules.forEach(smartRule => {
+                if (!this.isSelected(smartRule)) {
                     return;
                 }
 
-                this.toggleSelection(eplFile);
+                this.toggleSelection(smartRule);
             });
         });
     }
