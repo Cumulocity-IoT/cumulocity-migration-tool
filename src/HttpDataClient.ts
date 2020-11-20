@@ -214,6 +214,10 @@ export class HttpDataClient extends DataClient {
         };
     }
 
+    async createExternalId(deviceId: string | number, externalId: IExternalId) {
+        throw new Error("Method not implemented.");
+    }
+
     async updateApplication(app: IApplication & {applicationBuilder?: any}, blob?: Blob): Promise<string | number> {
         if (blob != undefined) {
             // Create the binary

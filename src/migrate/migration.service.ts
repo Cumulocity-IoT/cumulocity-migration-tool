@@ -72,7 +72,7 @@ export class Migration {
         groupMigrations: ManagedObjectMigration[], otherMigrations: ManagedObjectMigration[], 
         smartRuleMigrations: ManagedObjectMigration[], dashboardMigrations: ManagedObjectMigration[], 
         binaryMigrations: ManagedObjectMigration[], appMigrations: ApplicationMigration[],
-        eplFileMigrations: EplFileMigration[]) {
+        eplFileMigrations: EplFileMigration[], isMigrateExternalIds: boolean) {
         // Separate the simulated devices from the non-simulated devices
         const [simulatorDeviceMigrations, nonSimulatorDeviceMigrations] = _.partition(deviceMigrations, deviceMigration => {
             if (!isSimulatorDevice(deviceMigration.managedObject)) return false;
@@ -93,7 +93,21 @@ export class Migration {
                 oldIdsToNewIds.set(moMigration.managedObject.id.toString(), await this.destinationClient.updateManagedObject(mo))
             } else {
                 this.log$.next(MigrationLogEvent.verbose(`Migrating: ${moMigration.managedObject.id} - Creating new managed object.`));
-                oldIdsToNewIds.set(moMigration.managedObject.id.toString(), await this.destinationClient.createManagedObject(this.managedObjectMigrationToManagedObject(moMigration)));
+                let newManagedObjectId = await this.destinationClient.createManagedObject(this.managedObjectMigrationToManagedObject(moMigration));
+                oldIdsToNewIds.set(moMigration.managedObject.id.toString(), newManagedObjectId);
+
+                console.log(moMigration);
+                // migrate external IDs if option is enabled
+                if (isMigrateExternalIds && moMigration.managedObject.externalIds && moMigration.managedObject.externalIds.length > 0) {
+                    console.log("migrate external ids");
+                    console.log(moMigration.managedObject.externalIds);
+                    moMigration.managedObject.externalIds.forEach(externalIdRepresentation => {
+                        this.destinationClient.createExternalId(newManagedObjectId, 
+                            {externalId: externalIdRepresentation.externalId, 
+                            type: externalIdRepresentation.type, 
+                            managedObject : {id: newManagedObjectId}} as IExternalId);
+                    });
+                }
             }
         }
 
