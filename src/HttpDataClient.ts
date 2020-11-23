@@ -215,7 +215,18 @@ export class HttpDataClient extends DataClient {
     }
 
     async createExternalId(deviceId: string | number, externalId: IExternalId) {
-        throw new Error("Method not implemented.");
+        try {
+            this.client.core.fetch(`/identity/globalIds/${deviceId}/externalIds`, {
+                method: 'POST',
+                headers: {"Content-Type": 'application/json'},
+                body: JSON.stringify({
+                    externalId: externalId.externalId,
+                    type: externalId.type
+                })
+            });
+        } catch (error) {
+            console.error("Failed to create identity.", error);
+        }       
     }
 
     async updateApplication(app: IApplication & {applicationBuilder?: any}, blob?: Blob): Promise<string | number> {
