@@ -167,10 +167,12 @@
             <td>{{m.managedObject.id}}</td>
             <td>{{m.managedObject.name}}</td>
             <td colspan="2">
-                <div *ngFor="let externalIdRepresentation of m.managedObject.externalIds" class="row">
-                    <div class="col-lg-6"><span style="font-weight: bold;">type:</span> {{externalIdRepresentation.type}}</div>
-                    <div class="col-lg-6"><span style="font-weight: bold;">id:</span> {{externalIdRepresentation.externalId}}</div>
-                </div>
+                <ul style="padding-left: 15px;">
+                    <li *ngFor="let externalIdRepresentation of m.managedObject.externalIds" >
+                        <div><span style="font-weight: bold;">type:</span> {{externalIdRepresentation.type}}</div>
+                        <div><span style="font-weight: bold;">id:</span> {{externalIdRepresentation.externalId}}</div>
+                    </li>
+                </ul>
             </td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
