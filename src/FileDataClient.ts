@@ -176,7 +176,7 @@ export class FileDataClient extends DataClient {
         this.file = await zip.generateAsync({type: 'blob'});
     }
 
-    private async createExternalId(deviceId: string|number, externalId: IExternalId) {
+    async createExternalId(deviceId: string|number, externalId: IExternalId) {
         const json = await this.exportJsonFormat;
 
         if (!json.externalIds[deviceId.toString()]) {

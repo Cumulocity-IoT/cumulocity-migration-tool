@@ -59,6 +59,7 @@ export abstract class DataClient {
             deviceParents: string[]
         }
     ): Promise<void>;
+    abstract createExternalId(deviceId: string|number, externalId: IExternalId);
 
     abstract updateApplication(app: IApplication, blob?: Blob): Promise<string | number>;
     abstract updateBinary(binary: IManagedObject, blob: Blob): Promise<string | number>;

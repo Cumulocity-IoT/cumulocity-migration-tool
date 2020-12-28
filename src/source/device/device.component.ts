@@ -15,14 +15,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component} from '@angular/core';
-import {IManagedObject, Client} from '@c8y/client';
-import {DataService} from "../../data.service";
-import {SelectionService} from "../../selection.service";
-import {isSimulatorDevice, sortById} from "../../utils/utils";
-import {UpdateableAlert} from "../../utils/UpdateableAlert";
-import {AlertService} from "@c8y/ngx-components";
-import {DataClient} from 'src/DataClient';
+import { Component } from '@angular/core';
+import { IManagedObject, Client } from '@c8y/client';
+import { DataService } from "../../data.service";
+import { SelectionService } from "../../selection.service";
+import { isSimulatorDevice, sortById } from "../../utils/utils";
+import { UpdateableAlert } from "../../utils/UpdateableAlert";
+import { AlertService } from "@c8y/ngx-components";
+import { DataClient } from 'src/DataClient';
 
 @Component({
     templateUrl: './device.component.html'
@@ -37,7 +37,7 @@ export class DeviceComponent {
 
     load() {
         this.dataClient = this.dataService.getSourceDataClient();
-        this.allDevices = this.dataClient.getDevices().then(d => sortById(d));
+        this.allDevices = this.dataClient.getDevices().then(device => sortById(device));
     }
 
     async toggleSelection(device: IManagedObject) {
@@ -47,11 +47,11 @@ export class DeviceComponent {
             const alrt = new UpdateableAlert(this.alertService);
             this.selectionService.select(device.id);
             alrt.update(`Searching for linked Groups and Devices...`);
-            const {groups, devices, simulators, smartRules, other, childParentLinks} = await this.dataClient.findLinkedFrom(device);
-            childParentLinks.forEach(({child, parent}) => {
+            const { groups, devices, simulators, smartRules, other, childParentLinks } = await this.dataClient.findLinkedFrom(device);
+            childParentLinks.forEach(({ child, parent }) => {
                 this.selectionService.select(child, parent);
             });
-            alrt.update(`Links found: ${groups.length} Groups, ${devices.length-1} Devices, ${simulators.length} Simulators, ${smartRules.length} Smart Rules, ${other.length} Other`);
+            alrt.update(`Links found: ${groups.length} Groups, ${devices.length - 1} Devices, ${simulators.length} Simulators, ${smartRules.length} Smart Rules, ${other.length} Other`);
             alrt.close(5000);
         }
     }
@@ -60,7 +60,7 @@ export class DeviceComponent {
         return isSimulatorDevice(device);
     }
 
-    isSelected(o: {id: string|number}) {
+    isSelected(o: { id: string | number }) {
         return this.selectionService.isSelected(o.id);
     }
 

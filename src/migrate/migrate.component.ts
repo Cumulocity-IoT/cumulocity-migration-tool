@@ -62,6 +62,8 @@ export class MigrateComponent {
     editing: string;
     canUpdate: boolean;
 
+    isMigrateExternalIds = true;
+
     constructor(private dataService: DataService, private selectionService: SelectionService, private alertService: AlertService) {
         this.loadData();
     }
@@ -293,7 +295,7 @@ export class MigrateComponent {
 
         try {
             await migration.migrate(this.deviceMigrations, this.simulatorMigrations, this.groupMigrations, this.otherMigrations, 
-                this.smartRuleMigrations, this.dashboardMigrations, this.binaryMigrations, this.appMigrations, this.eplFileMigrations);
+                this.smartRuleMigrations, this.dashboardMigrations, this.binaryMigrations, this.appMigrations, this.eplFileMigrations, this.isMigrateExternalIds);
 
             if (destinationClient instanceof FileDataClient) {
                 alrt.update("Opening...");
