@@ -77,6 +77,7 @@ import { SelectSimulatorComponent } from "./src/migrate/selectsimulator/select-s
 import { SelectSmartRuleComponent } from "./src/migrate/selectsmartrule/select-smart-rule.component";
 import { SelectBinaryComponent } from "./src/migrate/selectbinary/select-binary.component";
 import { SelectEplFileComponent } from './src/migrate/selecteplfile/select-epl-file.component';
+import { SmartRestTemplateComponent } from './src/source/smartrest/smartrest.component';
 
 /**
  * Angular Routes.
@@ -122,6 +123,10 @@ const appRoutes: Routes = [
                 component: EplFilesComponent,
                 canActivate: [SourceCredentialsGuard]
             }, {
+                path: 'source/smartrest',
+                component: SmartRestTemplateComponent,
+                canActivate: [SourceCredentialsGuard]
+            },{
                 path: 'source/binary',
                 component: BinaryComponent,
                 canActivate: [SourceCredentialsGuard]
@@ -172,6 +177,7 @@ const appRoutes: Routes = [
         SelectSimulatorComponent,
         SelectSmartRuleComponent,
         SelectEplFileComponent,
+        SmartRestTemplateComponent,
         SelectBinaryComponent
     ],
     imports: [

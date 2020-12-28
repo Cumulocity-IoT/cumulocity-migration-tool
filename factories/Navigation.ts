@@ -78,6 +78,12 @@ source.add(new NavigatorNode({
   priority: 96
 }));
 source.add(new NavigatorNode({
+  label: _('Smart Rest'),
+  icon: 'file-code-o',
+  path: '/source/smartrest',
+  priority: 96
+}));
+source.add(new NavigatorNode({
   label: _('Binaries'),
   icon: 'c8y-archive',
   path: '/source/binary',

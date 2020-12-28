@@ -1,0 +1,39 @@
+<c8y-title translate>Smart Rest Template Collections</c8y-title>
+<c8y-action-bar-item [placement]="'left'">
+    <button class="btn btn-link" style="margin-top: 5px;" (click)="selectAll()">
+        <i class="fa fa-check"></i> {{'Select All' | translate}}
+    </button>
+</c8y-action-bar-item>
+<c8y-action-bar-item [placement]="'left'">
+    <button class="btn btn-link" style="margin-top: 5px;" (click)="deselectAll()">
+        <i class="fa fa-close"></i> {{'Deselect All' | translate}}
+    </button>
+</c8y-action-bar-item>
+<c8y-action-bar-item [placement]="'right'">
+    <button class="btn btn-link" style="margin-top: 5px;" (click)="reload()">
+        <i class="fa fa-refresh"></i> {{'Reload' | translate}}
+    </button>
+</c8y-action-bar-item>
+<table class="table table-hover" *ngIf="allSmartRestTemplates | async as templates">
+    <tr>
+        <th></th>
+        <th translate>Id</th>
+        <th translate>Name</th>
+        <th translate>Template Collection ID</th>
+        <th></th>
+        <th></th>
+    </tr>
+    <tr *ngFor="let template of templates; trackBy: trackById" (click)="toggleSelection(template)"
+        [class.info]="isSelected(template)">
+        <td><input type="checkbox" [checked]="isSelected(template)" /></td>
+        <td>{{template.id}}</td>
+        <td>{{template.name}}</td>
+        <td>
+            <div *ngFor="let externalIdRepresentation of template.externalIds">
+                <div>{{externalIdRepresentation.externalId}}</div>
+            </div>
+        </td>
+        <td><button class="btn btn-default" (click)="viewManagedObject($event, template)" translate>ManagedObject</button>
+        </td>
+    </tr>
+</table>

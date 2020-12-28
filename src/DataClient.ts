@@ -98,8 +98,13 @@ export abstract class DataClient {
             .filter(mo => mo.hasOwnProperty('ruleTemplateName'));
     }
 
+    async getSmartRestTemplates(cached = true) : Promise<IManagedObject[]> {
+        return (await this.getAllManagedObjects(cached))
+            .filter(mo => mo.hasOwnProperty('com_cumulocity_model_smartrest_csv_CsvSmartRestTemplate'));
+    }
+
     async getOtherManagedObjects(cached = true): Promise<IManagedObject[]> {
-        const [allManagedObjects, binaries, dashboards, groups, devices, simulators, smartRules, eplFiles] = await Promise.all([
+        const [allManagedObjects, binaries, dashboards, groups, devices, simulators, smartRules, eplFiles, smartRestTemplates] = await Promise.all([
             this.getAllManagedObjects(cached),
             this.getBinaries(true),
             this.getDashboards(true),
@@ -108,9 +113,10 @@ export abstract class DataClient {
             this.getSimulators(true),
             this.getSmartRules(true),
             this.getEplFiles(true),
+            this.getSmartRestTemplates(true),
         ]);
 
-        const usedIds = [...binaries, ...dashboards, ...groups, ...devices, ...simulators, ...smartRules, ...eplFiles].map(mo => mo.id.toString());
+        const usedIds = [...binaries, ...dashboards, ...groups, ...devices, ...simulators, ...smartRules, ...eplFiles, ...smartRestTemplates].map(mo => mo.id.toString());
 
         return allManagedObjects
             .filter(mo => !usedIds.some(usedId => usedId === mo.id.toString()));
@@ -486,6 +492,13 @@ export abstract class DataClient {
         return Promise.all((await this.getDevices(cached)).map(async (device) => ({
             ...device,
             externalIds: await this.getExternalIdsFor(device.id, cached)
+        })));
+    }
+
+    async getSmartRestWithExternalIds(cached: boolean = true) : Promise<(IManagedObject & {externalIds: IExternalId[]})[]> {
+        return Promise.all((await this.getSmartRestTemplates(cached)).map(async (template) => ({
+            ...template,
+            externalIds: await this.getExternalIdsFor(template.id, cached)
         })));
     }
 }
