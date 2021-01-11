@@ -424,4 +424,8 @@ export class HttpDataClient extends DataClient {
             deviceIds: externalIds.map(externalId => externalId.managedObject.id)
         };
     }
+
+    async finishMigration() {
+        throw new Error("Method not implemented.");
+    }
 }

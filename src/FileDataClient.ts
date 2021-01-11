@@ -269,6 +269,12 @@ export class FileDataClient extends DataClient {
         return binaryId;
     }
 
+    async buildZipArchive() {
+        const zip = (await JSZip.loadAsync(this.file));
+        zip.file('data.json', JSON.stringify(await this.exportJsonFormat, undefined, 2));
+        this.file = await zip.generateAsync({type: 'blob'});
+    }
+
     updateBinary(binary: IManagedObject, blob: Blob): Promise<string | number> {
         // No need to implement this... we always create a new file
         throw Error("Unimplemented: Can't update a binary in a file");
@@ -287,5 +293,9 @@ export class FileDataClient extends DataClient {
     updateSmartRule(smartRuleConfig: Partial<ISmartRuleConfig>): Promise<string | number> {
         // No need to implement this... we always create a new file
         throw Error("Unimplemented: Can't update a smartrule in a file");
+    }
+
+    async finishMigration() {
+        await this.buildZipArchive();
     }
 }

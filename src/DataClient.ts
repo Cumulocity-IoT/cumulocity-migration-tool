@@ -68,6 +68,8 @@ export abstract class DataClient {
     abstract updateSimulator(simulatorConfig: Partial<ISimulatorConfig>): Promise<{ simulatorId: string, deviceIds: (string | number)[]}>;
     abstract updateSmartRule(smartRuleConfig: Partial<ISmartRuleConfig>): Promise<string | number>;
 
+    abstract finishMigration();
+
     async getBinaries(cached = true): Promise<IManagedObject[]> {
         return (await this.getAllManagedObjects(cached))
             .filter(mo => mo.hasOwnProperty('c8y_applications_storage') || mo.hasOwnProperty('c8y_IsBinary'));
