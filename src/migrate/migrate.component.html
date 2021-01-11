@@ -269,8 +269,6 @@
             <td colspan="3">{{template.managedObject.name}}</td>
             <td class="creation-mode">
                 {{template.updateExisting ? 'Update' : 'Create'}}
-                <!-- <selectSmartRule #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectSmartRule> -->
-                <!-- <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a> -->
             </td>
             <td>{{template.updateExisting?.id || '-'}}</td>
             <td colspan="3">

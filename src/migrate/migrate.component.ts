@@ -434,6 +434,7 @@ export class MigrateComponent {
             ...this.deviceMigrations,
             ...this.simulatorMigrations,
             ...this.smartRuleMigrations,
+            ...this.smartRestTemplatesMigrations,
             ...this.eplFileMigrations,
             ...this.binaryMigrations,
             ...this.otherMigrations
