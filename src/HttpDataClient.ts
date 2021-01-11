@@ -118,7 +118,7 @@ export class HttpDataClient extends DataClient {
         const newApp = (await this.client.application.create(app)).data;
 
         // Update the external URL for applicationBuilder apps
-        if (app.applicationBuilder) {
+        if (app.applicationBuilder && newApp.externalUrl) {
             newApp.externalUrl = newApp.externalUrl.split('UNKNOWN-APP-ID').join(newApp.id.toString());
         }
 

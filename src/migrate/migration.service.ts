@@ -319,7 +319,6 @@ export class Migration {
         });
 
         if (result.applicationBuilder) {
-            result.externalUrl = appMigration.application.externalUrl.split(appMigration.application.id.toString()).join('UNKNOWN-APP-ID');
             // Update application builder dashboard ids
             if (result.applicationBuilder.dashboards) {
                 result.applicationBuilder.dashboards.forEach(dashboard => {
@@ -333,6 +332,12 @@ export class Migration {
                 // Should always have a dashboards property, even if empty
                 result.applicationBuilder.dashboards = [];
             }
+
+            // Update ExternalUrl
+            if (appMigration.application.externalUrl) {
+                result.externalUrl = appMigration.application.externalUrl.split(appMigration.application.id.toString()).join('UNKNOWN-APP-ID');
+            }
+            
         }
 
         // Update the application with the user provided changes...

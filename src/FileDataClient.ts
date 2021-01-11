@@ -107,7 +107,7 @@ export class FileDataClient extends DataClient {
     async createApplication(app: IApplication & {applicationBuilder?: any}, blob?: Blob): Promise<string | number> {
         app = _.cloneDeep(app);
         app.id = this.getNextManagedObjectId();
-        if (app.applicationBuilder) {
+        if (app.applicationBuilder && app.externalUrl) {
             app.externalUrl = app.externalUrl.split('UNKNOWN-APP-ID').join(app.id.toString());
         }
         const json = await this.exportJsonFormat;
