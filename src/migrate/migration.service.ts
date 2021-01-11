@@ -70,9 +70,9 @@ export class Migration {
 
     async migrate(deviceMigrations: ManagedObjectMigration[], simulatorMigrations: ManagedObjectMigration[], 
         groupMigrations: ManagedObjectMigration[], otherMigrations: ManagedObjectMigration[], 
-        smartRuleMigrations: ManagedObjectMigration[], dashboardMigrations: ManagedObjectMigration[], 
-        binaryMigrations: ManagedObjectMigration[], appMigrations: ApplicationMigration[],
-        eplFileMigrations: EplFileMigration[], isMigrateExternalIds: boolean) {
+        smartRuleMigrations: ManagedObjectMigration[], smartRestTemplateMigrations: ManagedObjectMigration[],
+        dashboardMigrations: ManagedObjectMigration[], binaryMigrations: ManagedObjectMigration[],
+        appMigrations: ApplicationMigration[], eplFileMigrations: EplFileMigration[], isMigrateExternalIds: boolean) {
         // Separate the simulated devices from the non-simulated devices
         const [simulatorDeviceMigrations, nonSimulatorDeviceMigrations] = _.partition(deviceMigrations, deviceMigration => {
             if (!isSimulatorDevice(deviceMigration.managedObject)) return false;
@@ -96,11 +96,8 @@ export class Migration {
                 let newManagedObjectId = await this.destinationClient.createManagedObject(this.managedObjectMigrationToManagedObject(moMigration));
                 oldIdsToNewIds.set(moMigration.managedObject.id.toString(), newManagedObjectId);
 
-                console.log(moMigration);
                 // migrate external IDs if option is enabled
                 if (isMigrateExternalIds && moMigration.managedObject.externalIds && moMigration.managedObject.externalIds.length > 0) {
-                    console.log("migrate external ids");
-                    console.log(moMigration.managedObject.externalIds);
                     moMigration.managedObject.externalIds.forEach(externalIdRepresentation => {
                         this.destinationClient.createExternalId(newManagedObjectId, 
                             {externalId: externalIdRepresentation.externalId, 
@@ -176,6 +173,31 @@ export class Migration {
             } else {
                 this.log$.next(MigrationLogEvent.verbose(`Migrating: ${srMigration.managedObject.id} - Creating new smart rule.`));
                 oldIdsToNewIds.set(srMigration.managedObject.id.toString(), await this.destinationClient.createSmartRule(this.smartRuleMigrationToSmartRuleConfig(srMigration, oldIdsToNewIds)));
+            }
+        }
+
+        // Migrate the SmartRestTemplates
+        this.log$.next(MigrationLogEvent.info("Migrating Smart Rest Templates..."));
+        for (let templateMigration of smartRestTemplateMigrations) {
+            if (templateMigration.updateExisting) {
+                this.log$.next(MigrationLogEvent.verbose(`Migrating: ${templateMigration.managedObject.id} - Updating existing Smart Rest Template: ${templateMigration.updateExisting.id}.`));
+                // const templateConfig = _.omit(this.smartRuleMigrationToSmartRuleConfig(srMigration, oldIdsToNewIds),'type');
+                // srConfig.id = srMigration.updateExisting.id;
+                // oldIdsToNewIds.set(srMigration.managedObject.id.toString(), await this.destinationClient.updateSmartRule(srConfig));
+            } else {
+                this.log$.next(MigrationLogEvent.verbose(`Migrating: ${templateMigration.managedObject.id} - Creating new Smart Rest Template.`));
+                const newManagedObjectId = await this.destinationClient.createManagedObject(this.managedObjectMigrationToManagedObject(templateMigration));
+                oldIdsToNewIds.set(templateMigration.managedObject.id.toString(), newManagedObjectId);
+
+                // migrate external IDs for template
+                if (templateMigration.managedObject.externalIds && templateMigration.managedObject.externalIds.length > 0) {
+                    templateMigration.managedObject.externalIds.forEach(externalIdRepresentation => {
+                        this.destinationClient.createExternalId(newManagedObjectId, 
+                            {externalId: externalIdRepresentation.externalId, 
+                            type: externalIdRepresentation.type, 
+                            managedObject : {id: newManagedObjectId}} as IExternalId);
+                    });
+                }
             }
         }
 
@@ -385,9 +407,24 @@ export class Migration {
             return false;
         }
 
+        function isWhitelistedKey(key) {
+            if (key.length) {
+                switch(key[0]) {
+                    case 'com_cumulocity_model_smartrest_csv_CsvSmartRestTemplate':
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
         const paths = objectScan(['**.*'], {useArraySelector: false, joined: false, breakFn: (key, value) => isBlacklistedKey(key), filterFn: (key, value) => {
                 if (isBlacklistedKey(key)) {
                     return false;
+                }
+
+                if (isWhitelistedKey(key)) {
+                    return true;
                 }
 
                 // We want to copy the leaf nodes (and will create their paths) so we skip anything that isn't a leaf node

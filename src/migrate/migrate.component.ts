@@ -50,6 +50,7 @@ export class MigrateComponent {
 
     appMigrations: ApplicationMigration[];
     eplFileMigrations: EplFileMigration[];
+    smartRestTemplatesMigrations: ManagedObjectMigration[];
     dashboardMigrations: ManagedObjectMigration[];
     groupMigrations: ManagedObjectMigration[];
     deviceMigrations: ManagedObjectMigration[];
@@ -71,6 +72,7 @@ export class MigrateComponent {
     async loadData() {
         this.appMigrations = [];
         this.eplFileMigrations = [];
+        this.smartRestTemplatesMigrations = [];
         this.dashboardMigrations = [];
         this.groupMigrations = [];
         this.deviceMigrations = [];
@@ -90,15 +92,16 @@ export class MigrateComponent {
         const [sourceEplFiles, destEplFiles] = await Promise.all([sourceClient.getEplFiles(), destinationClient.getEplFiles()]);
 
         const [
-            sourceDashboards, sourceGroups, sourceDevices, sourceSimulators, sourceSmartRules, sourceBinaries, sourceOtherMOs,
-            destDashboards, destGroups, destDevices, destSimulators, destSmartRules, destBinaries, destOtherMOs
+            sourceDashboards, sourceGroups, sourceDevices, sourceSimulators, sourceSmartRules, sourceSmartRestTemplates, sourceBinaries, sourceOtherMOs,
+            destDashboards, destGroups, destDevices, destSimulators, destSmartRules, destSmartRestTemplates, destBinaries, destOtherMOs
         ] = await Promise.all([
-            sourceClient.getDashboards(), sourceClient.getGroups(), sourceClient.getDevicesWithExternalIds(), sourceClient.getSimulators(), sourceClient.getSmartRules(), sourceClient.getBinaries(), sourceClient.getOtherManagedObjects(),
-            destinationClient.getDashboards(), destinationClient.getGroups(), destinationClient.getDevicesWithExternalIds(), destinationClient.getSimulators(), destinationClient.getSmartRules(), destinationClient.getBinaries(), destinationClient.getOtherManagedObjects()
+            sourceClient.getDashboards(), sourceClient.getGroups(), sourceClient.getDevicesWithExternalIds(), sourceClient.getSimulators(), sourceClient.getSmartRules(), sourceClient.getSmartRestWithExternalIds(), sourceClient.getBinaries(), sourceClient.getOtherManagedObjects(),
+            destinationClient.getDashboards(), destinationClient.getGroups(), destinationClient.getDevicesWithExternalIds(), destinationClient.getSimulators(), destinationClient.getSmartRules(), destinationClient.getSmartRestWithExternalIds(), destinationClient.getBinaries(), destinationClient.getOtherManagedObjects()
         ]);
 
         const selectedApps = sourceApps.filter(app => this.selectionService.isSelected(app.id));
         const selectedEplFiles = sourceEplFiles.filter(eplFile => this.selectionService.isSelected(eplFile.id));
+        const selectedSmartRestTemplates = sourceSmartRestTemplates.filter(template => this.selectionService.isSelected(template.id));
         const selectedDashboards = sourceDashboards.filter(dashboard => this.selectionService.isSelected(dashboard.id));
         const selectedGroups = sourceGroups.filter(group => this.selectionService.isSelected(group.id));
         const selectedDevices = sourceDevices.filter(device => this.selectionService.isSelected(device.id));
@@ -173,6 +176,13 @@ export class MigrateComponent {
             managedObject: smartRule,
             updateExisting: this.findExistingManagedObject(smartRule, destSmartRules)
         }));
+
+        this.smartRestTemplatesMigrations = selectedSmartRestTemplates.map(template => ({
+            newName: template.name,
+            managedObject: template,
+            updateExisting: this.findExistingManagedObject(template, destSmartRestTemplates)
+        }))
+
         this.binaryMigrations = selectedBinaries.map(binary => ({
             newName: binary.name,
             managedObject: binary,
@@ -262,6 +272,7 @@ export class MigrateComponent {
             || this.deviceMigrations.length > 0
             || this.simulatorMigrations.length > 0
             || this.smartRuleMigrations.length > 0
+            || this.smartRestTemplatesMigrations.length > 0
             || this.eplFileMigrations.length > 0
             || this.binaryMigrations.length > 0
             || this.otherMigrations.length > 0;
@@ -295,11 +306,13 @@ export class MigrateComponent {
 
         try {
             await migration.migrate(this.deviceMigrations, this.simulatorMigrations, this.groupMigrations, this.otherMigrations, 
-                this.smartRuleMigrations, this.dashboardMigrations, this.binaryMigrations, this.appMigrations, this.eplFileMigrations, this.isMigrateExternalIds);
+                this.smartRuleMigrations, this.smartRestTemplatesMigrations, this.dashboardMigrations, this.binaryMigrations, 
+                this.appMigrations, this.eplFileMigrations, this.isMigrateExternalIds);
 
             if (destinationClient instanceof FileDataClient) {
                 alrt.update("Opening...");
                 alrt.close(4500);
+                await destinationClient.finishMigration();
                 download(destinationClient.file, destinationClient.fileName);
             } else {
                 alrt.update("Done!", 'success');
