@@ -181,9 +181,9 @@ export class Migration {
         for (let templateMigration of smartRestTemplateMigrations) {
             if (templateMigration.updateExisting) {
                 this.log$.next(MigrationLogEvent.verbose(`Migrating: ${templateMigration.managedObject.id} - Updating existing Smart Rest Template: ${templateMigration.updateExisting.id}.`));
-                // const templateConfig = _.omit(this.smartRuleMigrationToSmartRuleConfig(srMigration, oldIdsToNewIds),'type');
-                // srConfig.id = srMigration.updateExisting.id;
-                // oldIdsToNewIds.set(srMigration.managedObject.id.toString(), await this.destinationClient.updateSmartRule(srConfig));
+                const templateManagedObject = this.managedObjectMigrationToManagedObject(templateMigration);
+                templateManagedObject.id = templateMigration.updateExisting.id;
+                oldIdsToNewIds.set(templateMigration.managedObject.id.toString(), await this.destinationClient.updateManagedObject(templateManagedObject))
             } else {
                 this.log$.next(MigrationLogEvent.verbose(`Migrating: ${templateMigration.managedObject.id} - Creating new Smart Rest Template.`));
                 const newManagedObjectId = await this.destinationClient.createManagedObject(this.managedObjectMigrationToManagedObject(templateMigration));
