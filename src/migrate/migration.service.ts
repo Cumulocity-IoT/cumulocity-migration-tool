@@ -230,9 +230,24 @@ export class Migration {
                 oldIdsToNewIds.set(dashboardMigration.managedObject.id.toString(), await this.destinationClient.updateManagedObject(db));
             } else {
                 this.log$.next(MigrationLogEvent.verbose(`Migrating: ${dashboardMigration.managedObject.id} - Creating new dashboard.`));
-                oldIdsToNewIds.set(dashboardMigration.managedObject.id.toString(), await this.destinationClient.createManagedObject(this.dashboardMigrationToManagedObject(dashboardMigration, oldIdsToNewIds)));
+                dashboardMigration.updateExisting = this.dashboardMigrationToManagedObject(dashboardMigration, oldIdsToNewIds);
+                dashboardMigration.updateExisting.id = (await this.destinationClient.createManagedObject(dashboardMigration.updateExisting)).toString();
+                oldIdsToNewIds.set(dashboardMigration.managedObject.id.toString(), dashboardMigration.updateExisting.id);
             }
         }
+
+        // run through config of dashboards and update 
+        for (let dashboardMigration of dashboardMigrations) {
+            if (dashboardMigration.updateExisting) {
+                // check widgets if any custom configuration and ids need to be updated
+                if (_.has(dashboardMigration.updateExisting, 'c8y_Dashboard.children')) {
+                    this.replaceOldIdsWithNew(_.get(dashboardMigration.updateExisting, 'c8y_Dashboard.children'), oldIdsToNewIds);
+                }
+            }
+
+            await this.destinationClient.updateManagedObject(dashboardMigration.updateExisting);
+        }
+
 
         // Create the parent child linkages
         this.log$.next(MigrationLogEvent.info("Migrating Parent/Child linkages..."));
@@ -370,11 +385,6 @@ export class Migration {
             }
         } else {
             // TODO: warn?
-        }
-
-        // check widgets if any custom configuration and ids need to be updated
-        if (_.has(result, 'c8y_Dashboard.children')) {
-            this.replaceOldIdsWithNew(_.get(result, 'c8y_Dashboard.children'), oldDeviceIdToNew);
         }
 
         return result;
