@@ -15,14 +15,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {ClientLike} from "./currentclient.service";
+import { ClientLike } from "./currentclient.service";
 import _ from 'lodash';
-import {IManagedObject, IApplication, ICurrentUser} from "@c8y/client";
-import {DataClient} from "./DataClient";
-import {delay} from "./utils/utils";
-import {IExternalId} from "./c8y-interfaces/IExternalId";
-import {ISimulatorConfig} from "./c8y-interfaces/ISimulatorConfig";
-import {ISmartRuleConfig} from "./c8y-interfaces/ISmartRuleConfig";
+import { IManagedObject, IApplication, ICurrentUser } from "@c8y/client";
+import { DataClient } from "./DataClient";
+import { delay } from "./utils/utils";
+import { IExternalId } from "./c8y-interfaces/IExternalId";
+import { ISimulatorConfig } from "./c8y-interfaces/ISimulatorConfig";
+import { ISmartRuleConfig } from "./c8y-interfaces/ISmartRuleConfig";
 import { IEplFileConfiguration } from "./c8y-interfaces/IEplFileConfig";
 
 export class HttpDataClient extends DataClient {
@@ -42,34 +42,52 @@ export class HttpDataClient extends DataClient {
         if (cached && this.applications) {
             return this.applications;
         } else {
-            return this.applications = this.client.application.list({pageSize: 2000}).then(x => x.data);
+            return this.applications = this.client.application.list({ pageSize: 2000 }).then(x => x.data);
         }
     }
 
-    getAllManagedObjects(cached = true): Promise<IManagedObject[]> {
+    async getAllManagedObjects(cached = true): Promise<IManagedObject[]> {
         if (cached && this.allManagedObjects) {
             return this.allManagedObjects;
         } else {
-            return this.allManagedObjects = this.client.inventory.list({pageSize: 2000}).then(x => x.data)
+            return this.allManagedObjects = this.getManagedObjects();
         }
+    }
+
+    private async getManagedObjects(): Promise<IManagedObject[]> {
+        let currentPage = 1;
+        const initialResponse = await this.client.inventory.list({ pageSize: 2000, withTotalPages: true, currentPage });
+
+        let managedObjects = initialResponse.data;
+
+        if (initialResponse.paging.totalPages === 1) {
+            return managedObjects;
+        }
+
+        while (currentPage < initialResponse.paging.totalPages) {
+            currentPage++;
+            managedObjects = managedObjects.concat((await this.client.inventory.list({ pageSize: 2000, currentPage })).data);
+        }
+
+        return managedObjects;
     }
 
     getEplFiles(cached?: boolean): Promise<IEplFileConfiguration[]> {
         if (cached && this.eplFiles) {
             return this.eplFiles;
-        } 
+        }
 
-        this.eplFiles = this.client.inventory.list({pageSize: 2000, type: 'apama_eplfile'}).then(({data}) => {
+        this.eplFiles = this.client.inventory.list({ pageSize: 2000, type: 'apama_eplfile' }).then(({ data }) => {
             return data.map(eplFileRaw => {
-                  let eplFile = {
+                let eplFile = {
                     id: _.get(eplFileRaw, 'id'),
                     name: _.get(eplFileRaw, 'name'),
                     description: _.get(eplFileRaw, 'apama_eplfile.description'),
                     state: _.get(eplFileRaw, 'apama_eplfile.state'),
-                    contents: _.get(eplFileRaw, 'apama_eplfile.contents') 
-                  } as IEplFileConfiguration;
+                    contents: _.get(eplFileRaw, 'apama_eplfile.contents')
+                } as IEplFileConfiguration;
 
-                  return eplFile
+                return eplFile
             });
         })
 
@@ -88,8 +106,8 @@ export class HttpDataClient extends DataClient {
 
         let receivedLength = 0;
         const chunks = [];
-        while(true) {
-            const {done, value} = await reader.read();
+        while (true) {
+            const { done, value } = await reader.read();
 
             if (done) {
                 break;
@@ -99,21 +117,21 @@ export class HttpDataClient extends DataClient {
             receivedLength += value.length;
 
             if (_.isFunction(onProgress)) {
-                onProgress(receivedLength/contentLength);
+                onProgress(receivedLength / contentLength);
             }
         }
 
         return new Blob(chunks);
     }
 
-    getApplicationBlob(app: (IApplication & {binary: IManagedObject}), onProgress?: (progress: number) => any) {
+    getApplicationBlob(app: (IApplication & { binary: IManagedObject }), onProgress?: (progress: number) => any) {
         if (app.binary == undefined) {
             return undefined;
         }
-       return this.getBinaryBlob(app.binary, onProgress);
+        return this.getBinaryBlob(app.binary, onProgress);
     }
 
-    async createApplication(app: IApplication & {applicationBuilder?: any}, blob?: Blob): Promise<string | number> {
+    async createApplication(app: IApplication & { applicationBuilder?: any }, blob?: Blob): Promise<string | number> {
         // Create the app
         const newApp = (await this.client.application.create(app)).data;
 
@@ -159,7 +177,7 @@ export class HttpDataClient extends DataClient {
         this.externalIds.clear();
     }
 
-    async createSimulator(simulatorConfig: Partial<ISimulatorConfig>): Promise<{ simulatorId: string, deviceIds: (string | number)[]}> {
+    async createSimulator(simulatorConfig: Partial<ISimulatorConfig>): Promise<{ simulatorId: string, deviceIds: (string | number)[] }> {
         // Simulators in Cumulocity are made of 2 (or more) managedObjects...
         // 1 - The definition
         // 2+ - The device(s)
@@ -181,7 +199,7 @@ export class HttpDataClient extends DataClient {
         let success = false;
         let attempt;
         while (maxAttempts > 0) {
-            maxAttempts --;
+            maxAttempts--;
             attempt = await attemptToCreateSimulator();
             if (attempt.status >= 200 && attempt.status < 300) {
                 success = true;
@@ -200,7 +218,7 @@ export class HttpDataClient extends DataClient {
         await delay(1000);
 
         // Find the device(s) that were created
-        const externalIds = await Promise.all([...Array(simulatorConfig.instances)].map(async (val,i) => await (await this.client.core.fetch(`/identity/externalIds/c8y_Serial/simulator_${simulatorId}_${i}`, {
+        const externalIds = await Promise.all([...Array(simulatorConfig.instances)].map(async (val, i) => await (await this.client.core.fetch(`/identity/externalIds/c8y_Serial/simulator_${simulatorId}_${i}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -218,7 +236,7 @@ export class HttpDataClient extends DataClient {
         try {
             this.client.core.fetch(`/identity/globalIds/${deviceId}/externalIds`, {
                 method: 'POST',
-                headers: {"Content-Type": 'application/json'},
+                headers: { "Content-Type": 'application/json' },
                 body: JSON.stringify({
                     externalId: externalId.externalId,
                     type: externalId.type
@@ -226,10 +244,10 @@ export class HttpDataClient extends DataClient {
             });
         } catch (error) {
             console.error("Failed to create identity.", error);
-        }       
+        }
     }
 
-    async updateApplication(app: IApplication & {applicationBuilder?: any}, blob?: Blob): Promise<string | number> {
+    async updateApplication(app: IApplication & { applicationBuilder?: any }, blob?: Blob): Promise<string | number> {
         if (blob != undefined) {
             // Create the binary
             const fd = new FormData();
@@ -244,7 +262,7 @@ export class HttpDataClient extends DataClient {
             })).json()).id;
         }
 
-        await this.client.application.update({id: app.id, activeVersionId: app.activeVersionId, externalUrl: app.externalUrl, applicationBuilder: app.applicationBuilder} as IApplication);
+        await this.client.application.update({ id: app.id, activeVersionId: app.activeVersionId, externalUrl: app.externalUrl, applicationBuilder: app.applicationBuilder } as IApplication);
 
         return app.id
     }
@@ -259,7 +277,7 @@ export class HttpDataClient extends DataClient {
         } else {
             const result = this.client.core.fetch(`/identity/globalIds/${managedObjectId}/externalIds`, {
                 method: 'GET',
-                headers: {Accept: 'application/json'}
+                headers: { Accept: 'application/json' }
             })
                 .then(response => response.json())
                 .then(json => json.externalIds)
@@ -277,14 +295,14 @@ export class HttpDataClient extends DataClient {
     }
 
     private getSmartRuleUrl(smartRuleConfig: Partial<ISmartRuleConfig>): string {
-        if (_.has(smartRuleConfig,['c8y_Context', 'id'])) {
+        if (_.has(smartRuleConfig, ['c8y_Context', 'id'])) {
             return `/service/smartrule/managedObjects/${smartRuleConfig.c8y_Context.id}/smartrules`;
         } else {
             return '/service/smartrule/smartrules';
         }
     }
 
-    async createSmartRule(smartRuleConfig: ISmartRuleConfig): Promise<string|number> {
+    async createSmartRule(smartRuleConfig: ISmartRuleConfig): Promise<string | number> {
         return (await (await this.client.core.fetch(this.getSmartRuleUrl(smartRuleConfig), {
             method: 'POST',
             headers: {
@@ -295,7 +313,7 @@ export class HttpDataClient extends DataClient {
     }
 
     async createEplFile(eplFileConfiguration: IEplFileConfiguration): Promise<string | number> {
-        return (await(await this.client.core.fetch('/service/cep/eplfiles', {
+        return (await (await this.client.core.fetch('/service/cep/eplfiles', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -305,7 +323,7 @@ export class HttpDataClient extends DataClient {
     }
 
     async updateEplFile(eplFileConfiguration: IEplFileConfiguration): Promise<string | number> {
-        return (await(await this.client.core.fetch(`/service/cep/eplfiles/${eplFileConfiguration.id.toString()}`, {
+        return (await (await this.client.core.fetch(`/service/cep/eplfiles/${eplFileConfiguration.id.toString()}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -319,13 +337,13 @@ export class HttpDataClient extends DataClient {
         })).json()).id;
     }
 
-    async checkSupportFor(type: 'Simulators'|'SmartRules'|'Apama'): Promise<boolean> {
-        switch(type) {
+    async checkSupportFor(type: 'Simulators' | 'SmartRules' | 'Apama'): Promise<boolean> {
+        switch (type) {
             case 'Simulators': {
                 try {
                     const response = await this.client.core.fetch('/service/device-simulator/simulators');
                     return response.status >= 200 && response.status < 300;
-                } catch(e) {
+                } catch (e) {
                     return false;
                 }
             }
@@ -334,7 +352,7 @@ export class HttpDataClient extends DataClient {
                     const managedObject = (await this.getAllManagedObjects())[0];
                     const response = await this.client.core.fetch(`/service/smartrule/managedObjects/${managedObject.id}/smartrules`);
                     return response.status >= 200 && response.status < 300;
-                } catch(e) {
+                } catch (e) {
                     return false;
                 }
             }
@@ -342,7 +360,7 @@ export class HttpDataClient extends DataClient {
                 try {
                     const response = await this.client.core.fetch('/service/cep/eplfiles');
                     return response.status >= 200 && response.status < 300;
-                } catch(e) {
+                } catch (e) {
                     return false;
                 }
             }
@@ -370,7 +388,7 @@ export class HttpDataClient extends DataClient {
         })).json()).id;
     }
 
-    async updateSimulator(simulatorConfig: Partial<ISimulatorConfig>): Promise<{ simulatorId: string, deviceIds: (string | number)[]}> {
+    async updateSimulator(simulatorConfig: Partial<ISimulatorConfig>): Promise<{ simulatorId: string, deviceIds: (string | number)[] }> {
         // Simulators in Cumulocity are made of 2 (or more) managedObjects...
         // 1 - The definition
         // 2+ - The device(s)
@@ -392,7 +410,7 @@ export class HttpDataClient extends DataClient {
         let success = false;
         let attempt;
         while (maxAttempts > 0) {
-            maxAttempts --;
+            maxAttempts--;
             attempt = await attemptToUpdateCreateSimulator();
             if (attempt.status >= 200 && attempt.status < 300) {
                 success = true;
@@ -411,7 +429,7 @@ export class HttpDataClient extends DataClient {
         await delay(1000);
 
         // Find the device(s) that were created
-        const externalIds = await Promise.all([...Array(simulatorConfig.instances)].map(async (val,i) => await (await this.client.core.fetch(`/identity/externalIds/c8y_Serial/simulator_${simulatorId}_${i}`, {
+        const externalIds = await Promise.all([...Array(simulatorConfig.instances)].map(async (val, i) => await (await this.client.core.fetch(`/identity/externalIds/c8y_Serial/simulator_${simulatorId}_${i}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
