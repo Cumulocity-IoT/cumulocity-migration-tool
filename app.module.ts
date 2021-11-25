@@ -16,13 +16,14 @@
 * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { RouterModule, Routes } from '@angular/router';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterModule as ngRouterModule, Routes } from '@angular/router';
 import { ExampleNavigationFactory } from './factories/Navigation';
 import { ApplicationComponent } from './src/source/application/application.component';
 import {
     CommonModule,
     CoreModule,
+    RouterModule,
     HOOK_NAVIGATOR_NODES,
     BootstrapComponent
 } from '@c8y/ngx-components';
@@ -175,12 +176,13 @@ const appRoutes: Routes = [
         SelectBinaryComponent
     ],
     imports: [
-        BrowserModule,
-        RouterModule.forRoot(appRoutes, { enableTracing: false, useHash: true }),
+        BrowserAnimationsModule,
+        RouterModule.forRoot(),
+        ngRouterModule.forRoot(appRoutes, { enableTracing: false, useHash: true }),
         // Import the CoreModule to allow use of the `c8y-` prefixed components
-        CoreModule,
+        CoreModule.forRoot(),
         // Import the CommonModule to allow use of data access and translations
-        CommonModule,
+        CommonModule.forRoot(),
         FormsModule,
         ButtonsModule.forRoot(),
         ModalModule.forRoot()
