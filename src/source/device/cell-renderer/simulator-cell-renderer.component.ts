@@ -14,6 +14,6 @@ export class SimulatorCellRendererComponent implements OnInit {
     ngOnInit(): void { }
 
     isSimulated(): boolean {
-        return isSimulatorDevice(this.context.value as IManagedObject)
+        return isSimulatorDevice(this.context.item as IManagedObject)
     }
 }
