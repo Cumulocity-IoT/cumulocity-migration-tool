@@ -1,7 +1,7 @@
 <c8y-title translate>Applications</c8y-title>
 <c8y-action-bar-item [placement]="'left'">
     <label class="c8y-switch" style="margin-top: 10px">
-        <input type="checkbox" [ngModel]="showAll$ | async" (ngModelChange)="showAll$.next($event)"/>
+        <input type="checkbox" [ngModel]="showAll$ | async" (ngModelChange)="showAll$.next($event)" />
         <span></span> Show All
     </label>
 </c8y-action-bar-item>
@@ -10,7 +10,7 @@
         <i class="fa fa-refresh"></i> {{'Reload' | translate}}
     </button>
 </c8y-action-bar-item>
-<table class="table table-hover" *ngIf="filteredApplications | async as applications">
+<!-- <table class="table table-hover" *ngIf="filteredApplications | async as applications">
     <tr>
         <th></th>
         <th translate>Id</th>
@@ -36,4 +36,21 @@
             <button class="btn btn-default" *ngIf="application.binary" (click)="downloadApplication($event, application, application.binary)" translate>Download</button>
         </td>
     </tr>
-</table>
+</table> -->
+<c8y-data-grid class="disable-bulk-selection" [title]="'Applications' | translate" [columns]="columns"
+    [rows]="filteredApplications" [pagination]="pagination" [selectable]="true" [bulkActionControls]="[]"
+    [actionControls]="actionControls" (itemsSelect)="onApplicationsSelected($event)">
+
+    <c8y-column name="binaryId">
+        <ng-container *c8yCellRendererDef="let context">
+            {{ context.value?.id }}
+        </ng-container>
+    </c8y-column>
+
+    <c8y-column name="size">
+        <ng-container *c8yCellRendererDef="let context">
+            {{ context.value?.length | fileSize }}
+        </ng-container>
+    </c8y-column>
+
+</c8y-data-grid>
