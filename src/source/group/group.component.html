@@ -1,39 +1,6 @@
 <c8y-title translate>Groups</c8y-title>
-<c8y-action-bar-item [placement]="'left'">
-    <button class="btn btn-link" style="margin-top: 5px;" (click)="selectAll()">
-        <i class="fa fa-check"></i> {{'Select All' | translate}}
-    </button>
-</c8y-action-bar-item>
-<c8y-action-bar-item [placement]="'left'">
-    <button class="btn btn-link" style="margin-top: 5px;" (click)="deselectAll()">
-        <i class="fa fa-close"></i> {{'Deselect All' | translate}}
-    </button>
-</c8y-action-bar-item>
-<c8y-action-bar-item [placement]="'right'">
-    <button class="btn btn-link" style="margin-top: 5px;" (click)="reload()">
-        <i class="fa fa-refresh"></i> {{'Reload' | translate}}
-    </button>
-</c8y-action-bar-item>
-<table class="table table-hover" *ngIf="allGroups | async as groups">
-    <tr>
-        <th></th>
-        <th translate>Id</th>
-        <th translate>Name</th>
-        <th translate>Owner</th>
-        <th></th>
-        <th></th>
-        <th></th>
-    </tr>
-    <tr *ngFor="let group of groups; trackBy: trackById" (click)="toggleSelection(group)"
-        [class.info]="isSelected(group)">
-        <td><input type="checkbox" [checked]="isSelected(group)" /></td>
-        <td>{{group.id}}</td>
-        <td>{{getGroupName(group)}}</td>
-        <td>{{group.owner}}</td>
-        <td><button class="btn btn-default" (click)="viewDeviceManagement($event, group)"
-                translate>DeviceManagement</button></td>
-        <td><button class="btn btn-default" (click)="viewCockpit($event, group)" translate>Cockpit</button></td>
-        <td><button class="btn btn-default" (click)="viewManagedObject($event, group)" translate>ManagedObject</button>
-        </td>
-    </tr>
-</table>
+
+<c8y-data-grid [title]="'Groups' | translate" [columns]="columns" [rows]="allGroups" [pagination]="pagination"
+    [selectable]="true" [bulkActionControls]="[]" [actionControls]="actionControls"
+    (itemsSelect)="onGroupsSelected($event)">
+</c8y-data-grid>
