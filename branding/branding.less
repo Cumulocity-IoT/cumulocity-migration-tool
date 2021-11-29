@@ -130,10 +130,16 @@
   float: right;
 }
 
-.disable-bulk-selection {
-  th.cdk-column-checkbox {
-    label.c8y-checkbox {
-      display: none !important;
+c8y-data-grid {
+  &.disable-bulk-selection {
+    th.cdk-column-checkbox {
+      label.c8y-checkbox {
+        display: none !important;
+      }
     }
+  }
+
+  &.full-screen {
+    height: calc(100vh - 120px);
   }
 }

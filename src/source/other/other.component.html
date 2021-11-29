@@ -1,6 +1,6 @@
 <c8y-title translate>Other ManagedObjects</c8y-title>
 
-<c8y-data-grid [title]="'Managed Objects' | translate" [columns]="columns" [rows]="allOtherManagedObjects"
+<c8y-data-grid class="full-screen scroll-column" [title]="'Managed Objects' | translate" [columns]="columns" [rows]="allOtherManagedObjects"
     [pagination]="pagination" [selectable]="true" [bulkActionControls]="[]" [actionControls]="actionControls"
     (itemsSelect)="onManagedObjectsSelected($event)">
 

@@ -6,7 +6,7 @@
     </label>
 </c8y-action-bar-item>
 
-<c8y-data-grid class="disable-bulk-selection" [title]="'Applications' | translate" [columns]="columns"
+<c8y-data-grid class="full-screen scroll-column disable-bulk-selection" [title]="'Applications' | translate" [columns]="columns"
     [rows]="filteredApplications" [pagination]="pagination" [selectable]="true" [bulkActionControls]="[]"
     [actionControls]="actionControls" (itemsSelect)="onApplicationsSelected($event)">
 

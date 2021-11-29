@@ -1,6 +1,6 @@
 <c8y-title translate>Groups</c8y-title>
 
-<c8y-data-grid [title]="'Groups' | translate" [columns]="columns" [rows]="allGroups" [pagination]="pagination"
+<c8y-data-grid class="full-screen scroll-column" [title]="'Groups' | translate" [columns]="columns" [rows]="allGroups" [pagination]="pagination"
     [selectable]="true" [bulkActionControls]="[]" [actionControls]="actionControls"
     (itemsSelect)="onGroupsSelected($event)">
 </c8y-data-grid>

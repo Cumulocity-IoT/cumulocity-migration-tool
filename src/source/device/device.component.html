@@ -1,5 +1,5 @@
 <c8y-title translate>Devices</c8y-title>
 
-<c8y-data-grid [title]="'Devices' | translate" [columns]="columns" [rows]="allDevices" [pagination]="pagination"
+<c8y-data-grid class="full-screen scroll-column" [title]="'Devices' | translate" [columns]="columns" [rows]="allDevices" [pagination]="pagination"
     [selectable]="true" [bulkActionControls]="[]" [actionControls]="actionControls" (itemsSelect)="onDevicesSelected($event)">
 </c8y-data-grid>

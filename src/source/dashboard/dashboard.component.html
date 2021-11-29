@@ -1,5 +1,6 @@
 <c8y-title translate>Dashboards</c8y-title>
 
-<c8y-data-grid [title]="'Dashboards' | translate" [columns]="columns" [rows]="allDashboards" [pagination]="pagination"
-    [selectable]="true" [bulkActionControls]="[]" [actionControls]="actionControls" (itemsSelect)="onDashboardsSelected($event)">
+<c8y-data-grid class="full-screen scroll-column" [title]="'Dashboards' | translate"
+    [columns]="columns" [rows]="allDashboards" [pagination]="pagination" [selectable]="true" [bulkActionControls]="[]"
+    [actionControls]="actionControls" (itemsSelect)="onDashboardsSelected($event)">
 </c8y-data-grid>

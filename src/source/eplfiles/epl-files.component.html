@@ -1,24 +1,6 @@
 <c8y-title translate>Epl Files</c8y-title>
 
-<table class="table table-hover" *ngIf="allEplFiles | async as eplFiles">
-    <tr>
-        <th></th>
-        <th translate>Id</th>
-        <th translate>Name</th>
-        <th translate>State</th>
-        <th></th>
-    </tr>
-    <tr *ngFor="let eplFile of eplFiles; trackBy: trackById" (click)="toggleSelection(eplFile)"
-        [class.info]="isSelected(eplFile)">
-        <td><input type="checkbox" [checked]="isSelected(eplFile)" /></td>
-        <td>{{eplFile.id}}</td>
-        <td>{{eplFile.name}}</td>
-        <td>{{eplFile.state}}</td>
-        <td><button class="btn btn-default" (click)="viewEplFile($event, eplFile)" translate>View Contents</button></td>
-    </tr>
-</table>
-
-<c8y-data-grid [title]="'EPL Files' | translate" [columns]="columns" [rows]="allEplFiles" [pagination]="pagination"
+<c8y-data-grid class="full-screen scroll-column" [title]="'EPL Files' | translate" [columns]="columns" [rows]="allEplFiles" [pagination]="pagination"
     [selectable]="true" [bulkActionControls]="[]" [actionControls]="actionControls"
     (itemsSelect)="onEPLFilesSelected($event)">
 </c8y-data-grid>
