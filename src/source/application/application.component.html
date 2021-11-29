@@ -5,38 +5,7 @@
         <span></span> Show All
     </label>
 </c8y-action-bar-item>
-<c8y-action-bar-item [placement]="'right'">
-    <button class="btn btn-link" style="margin-top: 5px;" (click)="reload()">
-        <i class="fa fa-refresh"></i> {{'Reload' | translate}}
-    </button>
-</c8y-action-bar-item>
-<!-- <table class="table table-hover" *ngIf="filteredApplications | async as applications">
-    <tr>
-        <th></th>
-        <th translate>Id</th>
-        <th translate>Name</th>
-        <th translate>Context Path</th>
-        <th translate>BinaryID</th>
-        <th translate>Size</th>
-        <th translate></th>
-        <th translate></th>
-        <th translate></th>
-    </tr>
-    <tr *ngFor="let application of applications; trackBy: trackById" (click)="toggleSelection(application)" [class.info]="isSelected(application)">
-        <td><input type="checkbox" [checked]="isSelected(application)"/></td>
-        <td>{{application.id}}</td>
-        <td>{{application.name}}</td>
-        <td>{{application.contextPath}}</td>
-        <td>{{application.binary?.id}}</td>
-        <td>{{application.binary?.length | fileSize}}</td>
-        <td>
-            <button class="btn btn-default" *ngIf="application.contextPath || application.externalUrl" (click)="openApplication($event, application)" translate>Open</button>
-        </td>
-        <td>
-            <button class="btn btn-default" *ngIf="application.binary" (click)="downloadApplication($event, application, application.binary)" translate>Download</button>
-        </td>
-    </tr>
-</table> -->
+
 <c8y-data-grid class="disable-bulk-selection" [title]="'Applications' | translate" [columns]="columns"
     [rows]="filteredApplications" [pagination]="pagination" [selectable]="true" [bulkActionControls]="[]"
     [actionControls]="actionControls" (itemsSelect)="onApplicationsSelected($event)">
