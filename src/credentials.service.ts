@@ -15,9 +15,9 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Injectable} from "@angular/core";
-import {ICredentials} from "@c8y/client";
-import {BehaviorSubject} from "rxjs";
+import { Injectable } from "@angular/core";
+import { ICredentials } from "@c8y/client";
+import { BehaviorSubject } from "rxjs";
 
 export interface ICurrentTenantConnectionDetails {
     type: 'currentTenant'
@@ -37,7 +37,7 @@ export interface IFileConnectionDetails {
 
 export type IConnectionDetails = ICurrentTenantConnectionDetails | ITenantConnectionDetails | IFileConnectionDetails;
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class CredentialsService {
     source$ = new BehaviorSubject<IConnectionDetails>({
         type: 'currentTenant',
@@ -51,4 +51,51 @@ export class CredentialsService {
         baseUrl: 'https://TenantName.cumulocity.com',
         fileName: 'CumulocityMigrationToolExport.zip'
     } as IFileConnectionDetails);
+
+    public getErrorMessage(connectionDetails: IConnectionDetails): string {
+        if (connectionDetails.type === 'file') {
+            return this.getErrorMessageForFileConnection();
+        } else if (connectionDetails.type === 'currentTenant') {
+            return this.getErrorMessageForCurrentTenant();
+        } else if (connectionDetails.type === 'tenant') {
+            return this.getErrorMessageForTenant((connectionDetails as ITenantConnectionDetails).baseUrl);
+        }
+
+        return this.getErrorMessageForCurrentTenant();
+    }
+
+    private getErrorMessageForFileConnection(): string {
+        return `<h4 class="alert-heading">Cannot access the server</h4>
+        <br />
+        The cause may be one of the following: <br />
+        <ul>
+            <li>The server is not responding</li>
+        </ul>`;
+    }
+
+    private getErrorMessageForCurrentTenant(): string {
+        return `<h4 class="alert-heading">Cannot access the server</h4>
+        <br />
+        The cause may be one of the following: <br />
+        <ul>
+            <li>The server is not responding</li>
+        </ul>`;
+    }
+
+    private getErrorMessageForTenant(baseUrl: string): string {
+        return `<h4 class="alert-heading">Cannot access the server</h4>
+        <br />
+        The cause may be one of the following: <br />
+        <ul>
+            <li>The server is not responding</li>
+            <li>Credentials are incorrect</li>
+            <li>CORS is not setup on the server</li>
+        </ul>
+        <br />
+        To fix the CORS errors:<br />
+        Temporarily set <a
+            href="${baseUrl}/apps/administration/index.html#/applicationsettings"
+            target="_blank">Access control, Allowed Domain</a> to <code>*</code> (Requires tenant Admin
+        access)<br />`;
+    }
 }
