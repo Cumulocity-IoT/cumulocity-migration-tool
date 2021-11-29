@@ -15,18 +15,18 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component, Inject, TemplateRef} from '@angular/core';
-import {CredentialsService, IConnectionDetails, ITenantConnectionDetails} from "../../credentials.service";
-import {BehaviorSubject} from "rxjs";
-import {AlertService, AppStateService} from "@c8y/ngx-components";
-import {ClientLike} from "../../currentclient.service";
-import {HttpDataClient} from "../../HttpDataClient";
-import {ICurrentUser} from '@c8y/client';
-import {DataService} from "../../data.service";
-import {MigrateComponent} from "../../migrate/migrate.component";
-import {UpdateableAlert} from "../../utils/UpdateableAlert";
-import {delay} from "../../utils/utils";
-import {Migration} from "../../migrate/migration.service";
+import { Component, Inject, TemplateRef } from '@angular/core';
+import { CredentialsService, IConnectionDetails, ITenantConnectionDetails } from "../../credentials.service";
+import { BehaviorSubject } from "rxjs";
+import { AlertService, AppStateService } from "@c8y/ngx-components";
+import { ClientLike } from "../../currentclient.service";
+import { HttpDataClient } from "../../HttpDataClient";
+import { ICurrentUser } from '@c8y/client';
+import { DataService } from "../../data.service";
+import { MigrateComponent } from "../../migrate/migrate.component";
+import { UpdateableAlert } from "../../utils/UpdateableAlert";
+import { delay } from "../../utils/utils";
+import { Migration } from "../../migrate/migration.service";
 
 @Component({
     templateUrl: './credentials.component.html'
@@ -36,15 +36,17 @@ export class CredentialsComponent {
     currentUser: ICurrentUser;
     currentTenantUrl: string;
 
-    constructor(private credentialsSvc: CredentialsService, private alertService: AlertService, private dataService: DataService, @Inject('currentClient') private currentClient: ClientLike, private appState: AppStateService) {
-        this.connectionDetails$ = credentialsSvc.destination$;
+    constructor(private credentialsService: CredentialsService, private alertService: AlertService,
+        private dataService: DataService, @Inject('currentClient') private currentClient: ClientLike,
+        private appState: AppStateService) {
+        this.connectionDetails$ = credentialsService.destination$;
         new HttpDataClient(this.currentClient).getUser().then(user => {
             this.currentUser = user;
         });
         this.currentTenantUrl = this.currentClient.core.baseUrl;
     }
 
-    save({username, password, baseUrl}: {username: string, password: string, baseUrl: string}) {
+    save({ username, password, baseUrl }: { username: string, password: string, baseUrl: string }) {
         this.connectionDetails$.next({
             type: "tenant",
             credentials: {
@@ -59,14 +61,15 @@ export class CredentialsComponent {
         this.connectionDetails$.next(connectionDetails);
     }
 
-    async checkConnection(connectionError: TemplateRef<any>, connectionDetails: IConnectionDetails) {
+    async checkConnection(connectionDetails: IConnectionDetails) {
         try {
             await this.dataService.createDataClient(connectionDetails).getUser();
             this.alertService.success(`Connection succeeded`);
-        } catch(e) {
+        } catch (e) {
             this.alertService.add({
                 type: 'danger',
-                text: connectionError,
+                allowHtml: true,
+                text: this.credentialsService.getErrorMessage(connectionDetails),
             });
         }
     }
@@ -106,12 +109,12 @@ export class CredentialsComponent {
                 newContextPath: 'migration-tool',
                 newAppKey: 'migration-tool-application-key',
                 application: migrationToolApp
-            }, new Map<string, string|number>());
+            }, new Map<string, string | number>());
             await dataClient.createApplication(newApp, binaryBlob);
             alrt.update('Done! Redirecting...', 'success');
             await delay(1000);
             window.location.href = `${connectionDetails.baseUrl}/apps/migration-tool`;
-        } catch(e) {
+        } catch (e) {
             alrt.update('Managed to connect to tenant but could not migrate the Migration Tool, you can try manually migrating it', 'danger');
             throw e;
         }
