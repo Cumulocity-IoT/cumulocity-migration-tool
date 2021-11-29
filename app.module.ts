@@ -78,6 +78,8 @@ import { SelectSimulatorComponent } from "./src/migrate/selectsimulator/select-s
 import { SelectSmartRuleComponent } from "./src/migrate/selectsmartrule/select-smart-rule.component";
 import { SelectBinaryComponent } from "./src/migrate/selectbinary/select-binary.component";
 import { SelectEplFileComponent } from './src/migrate/selecteplfile/select-epl-file.component';
+import { SimulatorCellRendererComponent } from './src/source/device/cell-renderer/simulator-cell-renderer.component';
+import { DashboardNameCellRendererComponent } from './src/source/dashboard/cell-renderer/dashboard-name-cell-renderer.component';
 
 /**
  * Angular Routes.
@@ -155,9 +157,11 @@ const appRoutes: Routes = [
         SourceCredentialsComponent,
         DestinationCredentialsComponent,
         ApplicationComponent,
+        DashboardNameCellRendererComponent,
         DashboardComponent,
         GroupComponent,
         DeviceComponent,
+        SimulatorCellRendererComponent,
         SimulatorComponent,
         SmartRuleComponent,
         EplFilesComponent,
@@ -174,6 +178,10 @@ const appRoutes: Routes = [
         SelectSmartRuleComponent,
         SelectEplFileComponent,
         SelectBinaryComponent
+    ],
+    entryComponents: [
+        DashboardNameCellRendererComponent,
+        SimulatorCellRendererComponent
     ],
     imports: [
         BrowserAnimationsModule,
