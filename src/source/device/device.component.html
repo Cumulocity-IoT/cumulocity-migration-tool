@@ -1,40 +1,5 @@
 <c8y-title translate>Devices</c8y-title>
-<c8y-action-bar-item [placement]="'left'">
-    <button class="btn btn-link" style="margin-top: 5px;" (click)="selectAll()">
-        <i class="fa fa-check"></i> {{'Select All' | translate}}
-    </button>
-</c8y-action-bar-item>
-<c8y-action-bar-item [placement]="'left'">
-    <button class="btn btn-link" style="margin-top: 5px;" (click)="deselectAll()">
-        <i class="fa fa-close"></i> {{'Deselect All' | translate}}
-    </button>
-</c8y-action-bar-item>
-<c8y-action-bar-item [placement]="'right'">
-    <button class="btn btn-link" style="margin-top: 5px;" (click)="reload()">
-        <i class="fa fa-refresh"></i> {{'Reload' | translate}}
-    </button>
-</c8y-action-bar-item>
-<table class="table table-hover" *ngIf="allDevices | async as devices">
-    <tr>
-        <th></th>
-        <th translate>Id</th>
-        <th translate>Name</th>
-        <th translate>Owner</th>
-        <th translate>Simulated?</th>
-        <th></th>
-        <th></th>
-    </tr>
-    <tr *ngFor="let device of devices; trackBy: trackById" (click)="toggleSelection(device)"
-        [class.info]="isSelected(device)">
-        <td><input type="checkbox" [checked]="isSelected(device)" /></td>
-        <td>{{device.id}}</td>
-        <td>{{getDeviceName(device)}}</td>
-        <td>{{device.owner}}</td>
-        <td>{{isSimulated(device) ? 'Simulated' : ''}}</td>
-        <td><button class="btn btn-default" (click)="viewDeviceManagement($event, device)"
-                translate>DeviceManagement</button></td>
-        <td><button class="btn btn-default" (click)="viewCockpit($event, device)" translate>Cockpit</button></td>
-        <td><button class="btn btn-default" (click)="viewManagedObject($event, device)" translate>ManagedObject</button>
-        </td>
-    </tr>
-</table>
+
+<c8y-data-grid [title]="'Devices' | translate" [columns]="columns" [rows]="allDevices" [pagination]="pagination"
+    [selectable]="true" [bulkActionControls]="[]" [actionControls]="actionControls" (itemsSelect)="onDevicesSelected($event)">
+</c8y-data-grid>
