@@ -15,68 +15,126 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component} from '@angular/core';
-import {IManagedObject} from '@c8y/client';
-import {DataService} from "../../data.service";
-import {SelectionService} from "../../selection.service";
-import {CredentialsService} from "../../credentials.service";
-import {getDashboardName, sortById} from "../../utils/utils";
-import {AlertService} from "@c8y/ngx-components";
-import {UpdateableAlert} from "../../utils/UpdateableAlert";
-import {DataClient} from "../../DataClient";
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { IManagedObject } from '@c8y/client';
+import { DataService } from "../../data.service";
+import { SelectionService } from "../../selection.service";
+import { CredentialsService } from "../../credentials.service";
+import { sortById } from "../../utils/utils";
+import { ActionControl, AlertService, Column, DataGridComponent, Pagination } from "@c8y/ngx-components";
+import { UpdateableAlert } from "../../utils/UpdateableAlert";
+import { DataClient } from "../../DataClient";
+import { difference } from 'lodash';
+import { DashboardNameCellRendererComponent } from './cell-renderer/dashboard-name-cell-renderer.component';
 
 @Component({
     templateUrl: './dashboard.component.html'
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
+    @ViewChild(DataGridComponent, { static: true })
+    dataGrid: DataGridComponent;
+
     private dataClient: DataClient;
-    allDashboards: Promise<IManagedObject[]>;
 
-    constructor(private dataService: DataService, private selectionService: SelectionService, private credSvc: CredentialsService, private alertService: AlertService) {
-        this.load();
-    }
+    allDashboards: IManagedObject[] = [];
 
-    load() {
-        this.dataClient = this.dataService.getSourceDataClient();
-        this.allDashboards = this.dataClient.getDashboards().then(db => sortById(db));
-    }
+    selectedDashboardIds: string[] = [];
 
-    async toggleSelection(dashboard: IManagedObject) {
-        if (this.isSelected(dashboard)) {
-            this.selectionService.deselect(dashboard.id);
-        } else {
-            const alrt = new UpdateableAlert(this.alertService);
-            this.selectionService.select(dashboard.id);
-            alrt.update(`Searching for linked Groups and Devices...`);
-            const {groups, devices, simulators, smartRules, other, binaries, childParentLinks} = await this.dataClient.findLinkedFromDashboard(dashboard);
-            childParentLinks.forEach(({child, parent}) => {
-                this.selectionService.select(child, parent);
-            });
-            alrt.update(`Links found: ${groups.length} Groups, ${devices.length} Devices, ${simulators.length} Simulators, ${smartRules.length} Smart Rules, ${binaries.length} Binaries, ${other.length} Other`);
-            alrt.close(5000);
+    columns: Column[] = [
+        {
+            name: 'id',
+            header: 'ID',
+            path: 'id',
+            gridTrackSize: '0.5fr'
+        },
+        {
+            name: 'nameDashboard',
+            header: 'Name',
+            filterable: false,
+            sortable: false,
+            cellRendererComponent: DashboardNameCellRendererComponent
+        },
+        {
+            name: 'owner',
+            header: 'Owner',
+            path: 'owner',
+            filterable: true,
         }
+    ];
+
+    pagination: Pagination = {
+        pageSize: 20,
+        currentPage: 1,
+    };
+
+    actionControls: ActionControl[] = [
+        {
+            text: 'Open Dashboard',
+            type: 'ACTION',
+            icon: 'system-task',
+            callback: ((dashboard: IManagedObject) => this.openDashboard(dashboard))
+        },
+        {
+            text: 'View Managed Object',
+            type: 'ACTION',
+            icon: 'file',
+            callback: ((dashboard: IManagedObject) => this.viewManagedObject(dashboard))
+        }
+    ];
+
+    constructor(private dataService: DataService, private selectionService: SelectionService,
+        private alertService: AlertService) { }
+
+    async ngOnInit(): Promise<void> {
+        await this.load();
+        this.updateSelectedDashboards();
     }
 
-    isSelected(o: {id: string|number}) {
-        return this.selectionService.isSelected(o.id);
-    }
-
-    trackById(index, value) {
-        return value.id;
-    }
-
-    readonly getDashboardName = getDashboardName;
-
-    viewManagedObject(event: MouseEvent, managedObject: IManagedObject) {
-        event.stopPropagation();
-        const blob = new Blob([JSON.stringify(managedObject, undefined, 2)], {
-            type: 'application/json'
+    onDashboardsSelected(selectedDashboardIds): void {
+        selectedDashboardIds.forEach((selectedDashboardId) => {
+            if (!this.isSelected(selectedDashboardId)) {
+                this.selectDashboard(selectedDashboardId);
+            }
         });
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
+
+        const dashboardsToDeselect = difference(this.selectedDashboardIds, selectedDashboardIds);
+        this.selectedDashboardIds = selectedDashboardIds;
+
+        dashboardsToDeselect.forEach(dashboardToDeselect => this.selectionService.deselect(dashboardToDeselect));
     }
 
-    getDashboardUrl(dashboard: IManagedObject): string | undefined {
+    private async load() {
+        this.dataClient = this.dataService.getSourceDataClient();
+        this.allDashboards = await this.dataClient.getDashboards().then(db => sortById(db));
+    }
+
+    private updateSelectedDashboards(): void {
+        this.allDashboards.forEach((dashboard) => {
+            if (this.isSelected(dashboard.id)) {
+                this.selectedDashboardIds.push(dashboard.id);
+            }
+        });
+
+        this.dataGrid.setItemsSelected(this.selectedDashboardIds, true);
+    }
+
+    private async selectDashboard(dashboardId: string) {
+        const alrt = new UpdateableAlert(this.alertService);
+        this.selectionService.select(dashboardId);
+        alrt.update(`Searching for linked Groups and Devices...`);
+        const { groups, devices, simulators, smartRules, other, binaries, childParentLinks } = await this.dataClient.findLinkedFromDashboard((this.allDashboards).find(dashboard => dashboard.id === dashboardId));
+        childParentLinks.forEach(({ child, parent }) => {
+            this.selectionService.select(child, parent);
+        });
+        alrt.update(`Links found: ${groups.length} Groups, ${devices.length} Devices, ${simulators.length} Simulators, ${smartRules.length} Smart Rules, ${binaries.length} Binaries, ${other.length} Other`);
+        alrt.close(5000);
+    }
+
+    private isSelected(dashboardId: string) {
+        return this.selectionService.isSelected(dashboardId);
+    }
+
+    private getDashboardUrl(dashboard: IManagedObject): string | undefined {
         const baseUrl = this.dataClient.getBaseUrl();
         if (!baseUrl) return undefined;
 
@@ -89,37 +147,17 @@ export class DashboardComponent {
         return undefined;
     }
 
-    openDashboard(event: MouseEvent, dashboard: IManagedObject) {
-        event.stopPropagation();
+    private openDashboard(dashboard: IManagedObject) {
+        console.log('open dashboard: ', dashboard);
+        console.log('url: ', this.getDashboardUrl(dashboard));
         window.open(this.getDashboardUrl(dashboard), '_blank');
     }
 
-    reload() {
-        this.dataClient.invalidateCache();
-        this.load();
-    }
-
-    async selectAll() {
-        this.allDashboards.then((dashobards) => {
-            dashobards.forEach(dashboard => {
-                if (this.isSelected(dashboard)) {
-                    return;
-                }
-
-                this.toggleSelection(dashboard);
-            });
+    private viewManagedObject(managedObject: IManagedObject) {
+        const blob = new Blob([JSON.stringify(managedObject, undefined, 2)], {
+            type: 'application/json'
         });
-    }
-
-    async deselectAll() {
-        this.allDashboards.then((dashobards) => {
-            dashobards.forEach(dashboard => {
-                if (!this.isSelected(dashboard)) {
-                    return;
-                }
-
-                this.toggleSelection(dashboard);
-            });
-        });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
     }
 }
