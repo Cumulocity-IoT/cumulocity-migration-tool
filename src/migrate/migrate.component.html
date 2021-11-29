@@ -8,13 +8,13 @@
 
 <c8y-action-bar-item [placement]="'left'">
     <button *ngIf="canUpdate" class="btn btn-link" style="margin-top: 5px;" (click)="markAllAsCreate()">
-        <i class="fa fa-code-fork"></i> {{'Mark all as Create' | translate}}
+        <i c8yIcon="code-fork"></i> {{'Mark all as Create' | translate}}
     </button>
 </c8y-action-bar-item>
 
 <c8y-action-bar-item [placement]="'right'">
     <button class="btn btn-primary" style="margin-top: 10px;" [disabled]="!canMigrate()" (click)="migrate()">
-        <i class="fa fa-exchange"></i> {{'Execute Migration' | translate}}
+        <i c8yIcon="exchange"></i> {{'Execute Migration' | translate}}
     </button>
 </c8y-action-bar-item>
 
@@ -35,7 +35,7 @@
     <thead>
         <tr class="migration-header">
             <th colspan="4">From {{from}}</th>
-            <th><i class="fa fa-arrow-right fa-2x"></i></th>
+            <th><i c8yIcon="arrow-right"></i></th>
             <th colspan="5">To {{to}}</th>
         </tr>
     </thead>
