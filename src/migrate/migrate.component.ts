@@ -43,6 +43,7 @@ import { SelectEplFileComponent } from './selecteplfile/select-epl-file.componen
 import { SelectGroupComponent } from './selectgroup/select-group.component';
 import { SelectOtherComponent } from './selectother/select-other.component';
 import { SelectSimulatorComponent } from './selectsimulator/select-simulator.component';
+import { SelectSmartRuleComponent } from './selectsmartrule/select-smart-rule.component';
 
 
 @Component({
@@ -390,6 +391,12 @@ export class MigrateComponent {
         });
     }
 
+    openSelectSmartRuleModal(smartRule: ManagedObjectMigration): void {
+        const modalRef = this.modalService.show(SelectSmartRuleComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: smartRule.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedSmartRuleId) => {
+            this.changeManagedObjectMigrationUpdateExisting(smartRule, selectedSmartRuleId);
+        });
+    }
 
     async changeManagedObjectMigrationUpdateExisting(m: ManagedObjectMigration, existingId: string | undefined) {
         if (existingId) {
