@@ -1,4 +1,4 @@
-<div class="modal fade" tabindex="-1" bsModal #modal="bs-modal"
+<!-- <div class="modal fade" tabindex="-1" bsModal #modal="bs-modal"
      role="dialog" aria-labelledby="dialog-events-name">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -34,4 +34,18 @@
             </div>
         </div>
     </div>
+</div> -->
+
+<div class="modal-header">
+    <h3>Update selected group for destination</h3>
+</div>
+<div class="modal-body">
+    <c8y-data-grid class="full-modal scroll-column disable-bulk-selection" [title]="'Groups' | translate" [columns]="columns"
+        [rows]="allGroups" [pagination]="pagination" [selectable]="true" [bulkActionControls]="[]"
+        [actionControls]="actionControls" (itemsSelect)="onEntriesSelected($event)">
+    </c8y-data-grid>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-primary" [disabled]="!isEntrySelected()" (click)="close()">Ok</button>
+    <button type="button" class="btn btn-default" (click)="close(false)">Cancel</button>
 </div>

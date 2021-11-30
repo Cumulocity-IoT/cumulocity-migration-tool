@@ -40,6 +40,7 @@ import { SelectDeviceComponent } from './selectdevice/select-device.component';
 import { SelectDashboardComponent } from './selectdashboard/select-dashboard.component';
 import { SelectBinaryComponent } from './selectbinary/select-binary.component';
 import { SelectEplFileComponent } from './selecteplfile/select-epl-file.component';
+import { SelectGroupComponent } from './selectgroup/select-group.component';
 
 
 @Component({
@@ -342,6 +343,13 @@ export class MigrateComponent {
         const modalRef = this.modalService.show(SelectDeviceComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: deviceManagedObject.updateExisting.id } });
         modalRef.content.onClose.subscribe((selectedDeviceId) => {
             this.changeManagedObjectMigrationUpdateExisting(deviceManagedObject, selectedDeviceId);
+        });
+    }
+
+    openSelectGroupModal(groupManagedObject: ManagedObjectMigration): void {
+        const modalRef = this.modalService.show(SelectGroupComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: groupManagedObject.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedGroupId) => {
+            this.changeManagedObjectMigrationUpdateExisting(groupManagedObject, selectedGroupId);
         });
     }
 
