@@ -15,15 +15,16 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component, TemplateRef, ViewChild} from '@angular/core';
-import {IApplication, IManagedObject} from '@c8y/client';
-import {DataService} from "../data.service";
-import {SelectionService} from "../selection.service";
-import {getDashboardName} from "../utils/utils";
-import {AlertService} from "@c8y/ngx-components";
+import { Component, TemplateRef, ViewChild } from '@angular/core';
+import { IApplication, IManagedObject } from '@c8y/client';
+import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { DataService } from "../data.service";
+import { SelectionService } from "../selection.service";
+import { getDashboardName } from "../utils/utils";
+import { AlertService } from "@c8y/ngx-components";
 import download from "downloadjs";
-import {FileDataClient} from "../FileDataClient";
-import {UpdateableAlert} from "../utils/UpdateableAlert";
+import { FileDataClient } from "../FileDataClient";
+import { UpdateableAlert } from "../utils/UpdateableAlert";
 import {
     ApplicationMigration,
     EplFileMigration,
@@ -32,9 +33,10 @@ import {
     MigrationLogEvent,
     MigrationLogLevel
 } from "./migration.service";
-import {filter} from 'rxjs/operators';
-import {BehaviorSubject} from "rxjs";
+import { filter } from 'rxjs/operators';
+import { BehaviorSubject } from "rxjs";
 import { IEplFileConfiguration } from 'src/c8y-interfaces/IEplFileConfig';
+import { SelectDeviceComponent } from './selectdevice/select-device.component';
 
 
 @Component({
@@ -64,7 +66,8 @@ export class MigrateComponent {
 
     isMigrateExternalIds = true;
 
-    constructor(private dataService: DataService, private selectionService: SelectionService, private alertService: AlertService) {
+    constructor(private dataService: DataService, private selectionService: SelectionService,
+        private alertService: AlertService, private modalService: BsModalService) {
         this.loadData();
     }
 
@@ -114,7 +117,7 @@ export class MigrateComponent {
             });
             selectedSmartRules.length = 0;
         }
-        
+
         if (selectedSimulators.length > 0 && !await destinationClient.checkSupportFor('Simulators')) {
             this.alertService.add({
                 type: 'danger',
@@ -203,7 +206,7 @@ export class MigrateComponent {
         return this.editing && this.editing === objectId;
     }
 
-    getObjectId(object: ManagedObjectMigration | ApplicationMigration | EplFileMigration) : string {
+    getObjectId(object: ManagedObjectMigration | ApplicationMigration | EplFileMigration): string {
         if (object.hasOwnProperty('managedObject')) {
             return (object as ManagedObjectMigration).managedObject.id.toString();
         }
@@ -233,7 +236,7 @@ export class MigrateComponent {
 
     resetDashboardMigration(dashboardMigration: ManagedObjectMigration) {
         if (dashboardMigration.updateExisting) {
-            dashboardMigration.newName =  getDashboardName(dashboardMigration.updateExisting);
+            dashboardMigration.newName = getDashboardName(dashboardMigration.updateExisting);
         } else {
             dashboardMigration.newName = getDashboardName(dashboardMigration.managedObject);
         }
@@ -241,9 +244,9 @@ export class MigrateComponent {
 
     resetManagedObjectMigration(managedObjectMigration: ManagedObjectMigration) {
         if (managedObjectMigration.updateExisting) {
-            managedObjectMigration.newName =  managedObjectMigration.updateExisting.name;
+            managedObjectMigration.newName = managedObjectMigration.updateExisting.name;
         } else {
-            managedObjectMigration.newName =  managedObjectMigration.managedObject.name;
+            managedObjectMigration.newName = managedObjectMigration.managedObject.name;
         }
     }
 
@@ -279,7 +282,7 @@ export class MigrateComponent {
         ).subscribe(log => alrt.update(log.description));
 
         const consoleLogger = migration.log$.subscribe(log => {
-            switch(log.level) {
+            switch (log.level) {
                 case MigrationLogLevel.Verbose:
                 case MigrationLogLevel.Info:
                     console.info(log.description);
@@ -290,11 +293,11 @@ export class MigrateComponent {
             }
         });
 
-        const lastLogMessage = new BehaviorSubject<MigrationLogEvent|undefined>(undefined);
+        const lastLogMessage = new BehaviorSubject<MigrationLogEvent | undefined>(undefined);
         const lastLogSubscriber = migration.log$.subscribe(lastLogMessage);
 
         try {
-            await migration.migrate(this.deviceMigrations, this.simulatorMigrations, this.groupMigrations, this.otherMigrations, 
+            await migration.migrate(this.deviceMigrations, this.simulatorMigrations, this.groupMigrations, this.otherMigrations,
                 this.smartRuleMigrations, this.dashboardMigrations, this.binaryMigrations, this.appMigrations, this.eplFileMigrations, this.isMigrateExternalIds);
 
             if (destinationClient instanceof FileDataClient) {
@@ -306,14 +309,14 @@ export class MigrateComponent {
                 alrt.close(1000);
             }
             this.dirty = false;
-        } catch(e) {
+        } catch (e) {
             if (lastLogMessage.getValue() != undefined) {
                 alrt.update(`Failed to migrate!\nFailed at: ${lastLogMessage.getValue().description}\n${this.getErrorMessage(e)}\nCheck browser console for more details`, 'danger');
             } else {
                 alrt.update(`Failed to migrate!\n${this.getErrorMessage(e)}\nCheck browser console for more details`, 'danger');
             }
 
-            throw(e);
+            throw (e);
         } finally {
             infoLogger.unsubscribe();
             consoleLogger.unsubscribe();
@@ -330,6 +333,14 @@ export class MigrateComponent {
         } else {
             return 'Error: An Unknown Error occurred';
         }
+    }
+
+    openSelectDeviceModal(deviceManagedObject: ManagedObjectMigration): void {
+        const modalRef = this.modalService.show(SelectDeviceComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: deviceManagedObject.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedDeviceId) => {
+            console.log('update selected target device: ', selectedDeviceId);
+            this.changeManagedObjectMigrationUpdateExisting(deviceManagedObject, selectedDeviceId);
+        });
     }
 
     async changeManagedObjectMigrationUpdateExisting(m: ManagedObjectMigration, existingId: string | undefined) {

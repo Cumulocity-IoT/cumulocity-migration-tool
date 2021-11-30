@@ -15,58 +15,91 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component, EventEmitter, Input, Output, ViewChild} from "@angular/core";
-import {DataClient} from "../../DataClient";
-import {DataService} from "../../data.service";
-import {AlertService} from "@c8y/ngx-components";
-import {sortById} from "../../utils/utils";
-import {IManagedObject} from "@c8y/client";
-import {ModalDirective} from "ngx-bootstrap/modal";
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from "@angular/core";
+import { DataClient } from "../../DataClient";
+import { DataService } from "../../data.service";
+import { ActionControl, AlertService, Column, DataGridComponent, Pagination } from "@c8y/ngx-components";
+import { isSimulatorDevice, sortById } from "../../utils/utils";
+import { IManagedObject } from "@c8y/client";
+import { BsModalRef } from "ngx-bootstrap/modal";
+import { difference } from "lodash";
+import { Subject } from "rxjs";
 
 @Component({
     templateUrl: './select-device.component.html',
     selector: 'selectDevice'
 })
-export class SelectDeviceComponent {
+export class SelectDeviceComponent implements OnInit {
     @Input() selected: string;
-    @Output() selectedChange: EventEmitter<string> = new EventEmitter<string>();
 
-    @ViewChild(ModalDirective) modal: ModalDirective;
+    onClose: Subject<string> = new Subject();
+
+    @ViewChild(DataGridComponent, { static: true })
+    dataGrid: DataGridComponent;
 
     private dataClient: DataClient;
-    allDevices: Promise<IManagedObject[]>;
 
-    constructor(private dataService: DataService, private alertService: AlertService) {
-        this.load();
-    }
+    allDevices: IManagedObject[];
 
-    load() {
-        this.dataClient = this.dataService.getDestinationDataClient();
-        this.allDevices = this.dataClient.getDevices().then(d => sortById(d));
-    }
-
-    isSelected(device: IManagedObject): boolean {
-        return device.id.toString() == this.selected;
-    }
-
-    toggleSelection(device: IManagedObject) {
-        if (this.isSelected(device)) {
-            this.selected = undefined;
-        } else {
-            this.selected = device.id.toString();
+    columns: Column[] = [
+        {
+            name: 'id',
+            header: 'ID',
+            path: 'id',
+            gridTrackSize: '0.5fr'
+        },
+        {
+            name: 'name',
+            header: 'Name',
+            path: 'name',
+            filterable: true,
         }
+    ];
+
+    pagination: Pagination = {
+        pageSize: 20,
+        currentPage: 1,
+    };
+
+    actionControls: ActionControl[] = [
+        {
+            text: 'View in Cockpit',
+            type: 'ACTION',
+            callback: ((device: IManagedObject) => this.viewCockpit(device))
+        },
+        {
+            text: 'View in Device Management',
+            type: 'ACTION',
+            callback: ((device: IManagedObject) => this.viewDeviceManagement(device))
+        },
+        {
+            text: 'View Managed Object',
+            type: 'ACTION',
+            callback: ((device: IManagedObject) => this.viewManagedObject(device))
+        }
+    ];
+
+    constructor(private dataService: DataService, private modalRef: BsModalRef) { }
+
+    async ngOnInit(): Promise<void> {
+        await this.load();
+        this.initSelectedDevice();
     }
 
-    trackById(index, value) {
-        return value.id;
+    async load() {
+        this.dataClient = this.dataService.getDestinationDataClient();
+        this.allDevices = await this.dataClient.getDevices().then(d => sortById(d));
     }
 
-    getName(device: IManagedObject) {
-        return device.name || '-';
+    initSelectedDevice(): void {
+        this.dataGrid.selectedItemIds = [this.selected];
     }
 
-    viewManagedObject(event: MouseEvent, managedObject: IManagedObject) {
-        event.stopPropagation();
+    isDeviceSelected(): boolean {
+        return !!this.selected;
+    }
+
+    viewManagedObject(managedObject: IManagedObject) {
         const blob = new Blob([JSON.stringify(managedObject, undefined, 2)], {
             type: 'application/json'
         });
@@ -74,14 +107,12 @@ export class SelectDeviceComponent {
         window.open(url, '_blank');
     }
 
-    viewDeviceManagement(event: MouseEvent, device: IManagedObject) {
-        event.stopPropagation();
+    viewDeviceManagement(device: IManagedObject) {
         const baseUrl = this.dataClient.getBaseUrl();
         window.open(`${baseUrl}/apps/devicemanagement/index.html#/device/${device.id}/device-info`, '_blank');
     }
 
-    viewCockpit(event: MouseEvent, device: IManagedObject) {
-        event.stopPropagation();
+    viewCockpit(device: IManagedObject) {
         const baseUrl = this.dataClient.getBaseUrl();
         window.open(`${baseUrl}/apps/cockpit/index.html#/device/${device.id}/info`, '_blank');
     }
@@ -91,14 +122,26 @@ export class SelectDeviceComponent {
         this.load();
     }
 
-    open() {
-        this.modal.show();
+    onDevicesSelected(selectedDeviceIds: string[]): void {
+        if (selectedDeviceIds.length === 0) {
+            this.selected = undefined;
+            return;
+        }
+
+        const newlySelectedDeviceId = selectedDeviceIds.find((selectedDeviceId) => selectedDeviceId != this.selected);
+        if (!newlySelectedDeviceId) {
+            return;
+        }
+
+        this.dataGrid.selectedItemIds = [newlySelectedDeviceId];
+        this.selected = newlySelectedDeviceId;
     }
 
     close(success: boolean = true) {
         if (success) {
-            this.selectedChange.emit(this.selected);
+            this.onClose.next(this.selected);
         }
-        this.modal.hide();
+        
+        this.modalRef.hide();
     }
 }

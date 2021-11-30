@@ -176,8 +176,7 @@
             </td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <selectDevice #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectDevice>
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i c8yIcon="pencil"></i></a>
+                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="openSelectDeviceModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">

@@ -181,7 +181,8 @@ const appRoutes: Routes = [
     ],
     entryComponents: [
         DashboardNameCellRendererComponent,
-        SimulatorCellRendererComponent
+        SimulatorCellRendererComponent,
+        SelectDeviceComponent
     ],
     imports: [
         BrowserAnimationsModule,
