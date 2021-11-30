@@ -186,7 +186,8 @@ const appRoutes: Routes = [
         SelectDashboardComponent,
         SelectDeviceComponent,
         SelectEplFileComponent,
-        SelectGroupComponent
+        SelectGroupComponent,
+        SelectOtherComponent
     ],
     imports: [
         BrowserAnimationsModule,

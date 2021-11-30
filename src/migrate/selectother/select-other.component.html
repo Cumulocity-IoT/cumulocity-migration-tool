@@ -1,4 +1,4 @@
-<div class="modal fade" tabindex="-1" bsModal #modal="bs-modal"
+<!-- <div class="modal fade" tabindex="-1" bsModal #modal="bs-modal"
      role="dialog" aria-labelledby="dialog-events-name">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -30,4 +30,24 @@
             </div>
         </div>
     </div>
+</div> -->
+
+<div class="modal-header">
+    <h3>Update selected Managed Object for destination</h3>
+</div>
+<div class="modal-body">
+    <c8y-data-grid class="full-modal scroll-column disable-bulk-selection" [title]="'Managed Objects' | translate" [columns]="columns"
+        [rows]="allOthers" [pagination]="pagination" [selectable]="true" [bulkActionControls]="[]"
+        [actionControls]="actionControls" (itemsSelect)="onEntriesSelected($event)">
+
+        <c8y-column name="name">
+            <ng-container *c8yCellRendererDef="let context">
+                {{ getName(context.value) }}
+            </ng-container>
+        </c8y-column>
+    </c8y-data-grid>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-primary" [disabled]="!isEntrySelected()" (click)="close()">Ok</button>
+    <button type="button" class="btn btn-default" (click)="close(false)">Cancel</button>
 </div>

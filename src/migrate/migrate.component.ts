@@ -41,6 +41,7 @@ import { SelectDashboardComponent } from './selectdashboard/select-dashboard.com
 import { SelectBinaryComponent } from './selectbinary/select-binary.component';
 import { SelectEplFileComponent } from './selecteplfile/select-epl-file.component';
 import { SelectGroupComponent } from './selectgroup/select-group.component';
+import { SelectOtherComponent } from './selectother/select-other.component';
 
 
 @Component({
@@ -350,6 +351,13 @@ export class MigrateComponent {
         const modalRef = this.modalService.show(SelectGroupComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: groupManagedObject.updateExisting.id } });
         modalRef.content.onClose.subscribe((selectedGroupId) => {
             this.changeManagedObjectMigrationUpdateExisting(groupManagedObject, selectedGroupId);
+        });
+    }
+
+    openSelectOtherManagedObjectsModal(managedObject: ManagedObjectMigration): void {
+        const modalRef = this.modalService.show(SelectOtherComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: managedObject.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedManagedObjectId) => {
+            this.changeManagedObjectMigrationUpdateExisting(managedObject, selectedManagedObjectId);
         });
     }
 
