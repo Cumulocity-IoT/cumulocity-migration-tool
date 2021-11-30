@@ -101,8 +101,7 @@
             <td colspan="3">{{getDashboardName(m.managedObject)}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <selectDashboard #modal [selected]="m.updateExisting?.id" (selectedChange)="changeDashboardMigrationUpdateExisting(m, $event)"></selectDashboard>
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i c8yIcon="pencil"></i></a>
+                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="openSelectDashboardModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">{{m.newName}}</td>

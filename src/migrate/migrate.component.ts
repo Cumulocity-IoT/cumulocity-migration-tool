@@ -37,6 +37,7 @@ import { filter } from 'rxjs/operators';
 import { BehaviorSubject } from "rxjs";
 import { IEplFileConfiguration } from 'src/c8y-interfaces/IEplFileConfig';
 import { SelectDeviceComponent } from './selectdevice/select-device.component';
+import { SelectDashboardComponent } from './selectdashboard/select-dashboard.component';
 
 
 @Component({
@@ -340,6 +341,14 @@ export class MigrateComponent {
         modalRef.content.onClose.subscribe((selectedDeviceId) => {
             console.log('update selected target device: ', selectedDeviceId);
             this.changeManagedObjectMigrationUpdateExisting(deviceManagedObject, selectedDeviceId);
+        });
+    }
+
+    openSelectDashboardModal(dashboardManagedObject: ManagedObjectMigration): void {
+        const modalRef = this.modalService.show(SelectDashboardComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: dashboardManagedObject.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedDashboardId) => {
+            console.log('update selected target dashboard: ', selectedDashboardId);
+            this.changeManagedObjectMigrationUpdateExisting(dashboardManagedObject, selectedDashboardId);
         });
     }
 
