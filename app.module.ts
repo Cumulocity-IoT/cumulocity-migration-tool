@@ -182,6 +182,7 @@ const appRoutes: Routes = [
     entryComponents: [
         DashboardNameCellRendererComponent,
         SimulatorCellRendererComponent,
+        SelectBinaryComponent,
         SelectDashboardComponent,
         SelectDeviceComponent
     ],

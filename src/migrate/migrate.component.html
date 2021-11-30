@@ -298,8 +298,7 @@
             <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <selectBinary #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectBinary>
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i c8yIcon="pencil"></i></a>
+                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="openSelectBinaryModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">

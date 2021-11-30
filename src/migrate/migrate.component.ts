@@ -38,6 +38,7 @@ import { BehaviorSubject } from "rxjs";
 import { IEplFileConfiguration } from 'src/c8y-interfaces/IEplFileConfig';
 import { SelectDeviceComponent } from './selectdevice/select-device.component';
 import { SelectDashboardComponent } from './selectdashboard/select-dashboard.component';
+import { SelectBinaryComponent } from './selectbinary/select-binary.component';
 
 
 @Component({
@@ -339,7 +340,6 @@ export class MigrateComponent {
     openSelectDeviceModal(deviceManagedObject: ManagedObjectMigration): void {
         const modalRef = this.modalService.show(SelectDeviceComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: deviceManagedObject.updateExisting.id } });
         modalRef.content.onClose.subscribe((selectedDeviceId) => {
-            console.log('update selected target device: ', selectedDeviceId);
             this.changeManagedObjectMigrationUpdateExisting(deviceManagedObject, selectedDeviceId);
         });
     }
@@ -347,10 +347,17 @@ export class MigrateComponent {
     openSelectDashboardModal(dashboardManagedObject: ManagedObjectMigration): void {
         const modalRef = this.modalService.show(SelectDashboardComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: dashboardManagedObject.updateExisting.id } });
         modalRef.content.onClose.subscribe((selectedDashboardId) => {
-            console.log('update selected target dashboard: ', selectedDashboardId);
-            this.changeManagedObjectMigrationUpdateExisting(dashboardManagedObject, selectedDashboardId);
+            this.changeDashboardMigrationUpdateExisting(dashboardManagedObject, selectedDashboardId);
         });
     }
+
+    openSelectBinaryModal(binaryManagedObject: ManagedObjectMigration): void {
+        const modalRef = this.modalService.show(SelectBinaryComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: binaryManagedObject.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedBinaryId) => {
+            this.changeManagedObjectMigrationUpdateExisting(binaryManagedObject, selectedBinaryId);
+        });
+    }
+
 
     async changeManagedObjectMigrationUpdateExisting(m: ManagedObjectMigration, existingId: string | undefined) {
         if (existingId) {
