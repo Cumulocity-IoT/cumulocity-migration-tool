@@ -1,36 +1,19 @@
-<div class="modal fade" tabindex="-1" bsModal #modal="bs-modal"
-     role="dialog" aria-labelledby="dialog-events-name">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title pull-left">Simulators</h4>
-                <button type="button" class="close pull-right" aria-label="Close" (click)="close(false)">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body overflow-auto" style="max-height: calc(100vh - 230px); min-height: 300px;">
-                <table class="table table-hover" *ngIf="allSimulators | async as simulators">
-                    <tr>
-                        <th></th>
-                        <th translate>Id</th>
-                        <th translate>Name</th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                    </tr>
-                    <tr *ngFor="let simulator of simulators; trackBy: trackById" (click)="toggleSelection(simulator)" [class.info]="isSelected(simulator)">
-                        <td><input type="checkbox" [checked]="isSelected(simulator)"/></td>
-                        <td>{{simulator.id}}</td>
-                        <td>{{getName(simulator)}}</td>
-                        <td><button class="btn btn-default" (click)="viewSimulator($event, simulator)" translate>DeviceManagement</button></td>
-                        <td><button class="btn btn-default" (click)="viewManagedObject($event, simulator)" translate>ManagedObject</button></td>
-                    </tr>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" (click)="close()">Ok</button>
-                <button type="button" class="btn btn-default" (click)="close(false)">Cancel</button>
-            </div>
-        </div>
-    </div>
+<div class="modal-header">
+    <h3>Update selected simulator for destination</h3>
+</div>
+<div class="modal-body">
+    <c8y-data-grid class="full-modal scroll-column disable-bulk-selection" [title]="'Simulators' | translate" [columns]="columns"
+        [rows]="allSimulators" [pagination]="pagination" [selectable]="true" [bulkActionControls]="[]"
+        [actionControls]="actionControls" (itemsSelect)="onEntriesSelected($event)">
+
+        <c8y-column name="name">
+            <ng-container *c8yCellRendererDef="let context">
+                {{ getName(context.value) }}
+            </ng-container>
+        </c8y-column>
+    </c8y-data-grid>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-primary" [disabled]="!isEntrySelected()" (click)="close()">Ok</button>
+    <button type="button" class="btn btn-default" (click)="close(false)">Cancel</button>
 </div>

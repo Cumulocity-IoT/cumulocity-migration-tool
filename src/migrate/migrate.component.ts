@@ -42,6 +42,7 @@ import { SelectBinaryComponent } from './selectbinary/select-binary.component';
 import { SelectEplFileComponent } from './selecteplfile/select-epl-file.component';
 import { SelectGroupComponent } from './selectgroup/select-group.component';
 import { SelectOtherComponent } from './selectother/select-other.component';
+import { SelectSimulatorComponent } from './selectsimulator/select-simulator.component';
 
 
 @Component({
@@ -381,6 +382,14 @@ export class MigrateComponent {
             this.changeEplFileMigrationUpdateExisting(eplFileMigration, selectedEPLFileId);
         });
     }
+
+    openSelectSimulatorsModal(simulator: ManagedObjectMigration): void {
+        const modalRef = this.modalService.show(SelectSimulatorComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: simulator.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedSimulatorId) => {
+            this.changeManagedObjectMigrationUpdateExisting(simulator, selectedSimulatorId);
+        });
+    }
+
 
     async changeManagedObjectMigrationUpdateExisting(m: ManagedObjectMigration, existingId: string | undefined) {
         if (existingId) {
