@@ -15,13 +15,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component, EventEmitter, Input, Output, ViewChild} from "@angular/core";
-import {DataClient} from "../../DataClient";
-import {DataService} from "../../data.service";
-import {sortById} from "../../utils/utils";
-import {IManagedObject} from "@c8y/client";
-import {ModalDirective} from "ngx-bootstrap/modal";
+import { Component, EventEmitter, Input, Output, ViewChild } from "@angular/core";
+import { DataClient } from "../../DataClient";
+import { DataService } from "../../data.service";
+import { sortById } from "../../utils/utils";
+import { IManagedObject } from "@c8y/client";
+import { BsModalRef } from "ngx-bootstrap/modal";
 import { IEplFileConfiguration } from "src/c8y-interfaces/IEplFileConfig";
+import { Subject } from "rxjs";
+import { ActionControl, Column, DataGridComponent, Pagination } from "@c8y/ngx-components";
 
 @Component({
     templateUrl: './select-epl-file.component.html',
@@ -29,45 +31,63 @@ import { IEplFileConfiguration } from "src/c8y-interfaces/IEplFileConfig";
 })
 export class SelectEplFileComponent {
     @Input() selected: string;
-    @Output() selectedChange: EventEmitter<string> = new EventEmitter<string>();
 
-    @ViewChild(ModalDirective) modal: ModalDirective;
+    onClose: Subject<string> = new Subject();
+
+    @ViewChild(DataGridComponent, { static: true })
+    dataGrid: DataGridComponent;
 
     private dataClient: DataClient;
-    allEplFiles: Promise<IEplFileConfiguration[]>;
 
-    constructor(private dataService: DataService) {
-        this.load();
-    }
+    allEPLFiles: IEplFileConfiguration[];
 
-    load() {
-        this.dataClient = this.dataService.getDestinationDataClient();
-        this.allEplFiles = this.dataClient.getEplFiles().then(eplFiles => sortById(eplFiles));
-    }
-
-    isSelected(eplFile: IEplFileConfiguration): boolean {
-        return eplFile.id.toString() == this.selected;
-    }
-
-    toggleSelection(eplFile: IEplFileConfiguration) {
-        if (this.isSelected(eplFile)) {
-            this.selected = undefined;
-        } else {
-            this.selected = eplFile.id.toString();
+    columns: Column[] = [
+        {
+            name: 'id',
+            header: 'ID',
+            path: 'id',
+            gridTrackSize: '0.5fr'
+        },
+        {
+            name: 'name',
+            header: 'Name',
+            path: 'name',
+            filterable: true,
         }
+    ];
+
+    pagination: Pagination = {
+        pageSize: 20,
+        currentPage: 1,
+    };
+
+    actionControls: ActionControl[] = [
+        {
+            text: 'View Managed Object',
+            type: 'ACTION',
+            icon: 'file',
+            callback: ((eplFile: IEplFileConfiguration) => this.viewEplFile(eplFile))
+        }
+    ];
+
+    constructor(private dataService: DataService, private modalRef: BsModalRef) { }
+
+    async ngOnInit(): Promise<void> {
+        await this.load();
+        this.initSelectedEntry();
     }
 
-    trackById(index, value) {
-        return value.id;
+    async load() {
+        this.dataClient = this.dataService.getDestinationDataClient();
+        this.allEPLFiles = await this.dataClient.getEplFiles().then(eplFiles => sortById(eplFiles));
     }
 
-    viewEplFile(event: MouseEvent, eplFile: IEplFileConfiguration) {
-        event.stopPropagation();
-        const blob = new Blob([eplFile.contents], {
-            type: 'text/plain'
-        });
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
+    initSelectedEntry(): void {
+        this.dataGrid.selectedItemIds = [this.selected];
+    }
+
+    isEntrySelected(): boolean {
+        return !!this.selected;
     }
 
     reload() {
@@ -75,14 +95,34 @@ export class SelectEplFileComponent {
         this.load();
     }
 
-    open() {
-        this.modal.show();
+    onEntriesSelected(selectedEntryIds: string[]): void {
+        if (selectedEntryIds.length === 0) {
+            this.selected = undefined;
+            return;
+        }
+
+        const newlySelectedEntryId = selectedEntryIds.find((selectedEntryId) => selectedEntryId != this.selected);
+        if (!newlySelectedEntryId) {
+            return;
+        }
+
+        this.dataGrid.selectedItemIds = [newlySelectedEntryId];
+        this.selected = newlySelectedEntryId;
     }
 
     close(success: boolean = true) {
         if (success) {
-            this.selectedChange.emit(this.selected);
+            this.onClose.next(this.selected);
         }
-        this.modal.hide();
+
+        this.modalRef.hide();
+    }
+
+    viewEplFile(eplFile: IEplFileConfiguration) {
+        const blob = new Blob([eplFile.contents], {
+            type: 'text/plain'
+        });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
     }
 }

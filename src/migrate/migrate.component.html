@@ -267,8 +267,7 @@
             <td colspan="3">{{eplFile.eplFile.name}}</td>
             <td class="creation-mode">
                 {{eplFile.updateExisting ? 'Update' : 'Create'}}
-                <selectEplFile #modal [selected]="eplFile.updateExisting?.id" (selectedChange)="changeEplFileMigrationUpdateExisting(eplFile, $event)"></selectEplFile>
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i c8yIcon="pencil"></i></a>
+                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="openSelectEPLFileModal(eplFile)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{eplFile.updateExisting?.id || '-'}}</td>
             <td colspan="3">

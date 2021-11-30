@@ -184,7 +184,8 @@ const appRoutes: Routes = [
         SimulatorCellRendererComponent,
         SelectBinaryComponent,
         SelectDashboardComponent,
-        SelectDeviceComponent
+        SelectDeviceComponent,
+        SelectEplFileComponent
     ],
     imports: [
         BrowserAnimationsModule,

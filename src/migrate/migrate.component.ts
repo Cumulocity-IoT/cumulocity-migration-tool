@@ -39,6 +39,7 @@ import { IEplFileConfiguration } from 'src/c8y-interfaces/IEplFileConfig';
 import { SelectDeviceComponent } from './selectdevice/select-device.component';
 import { SelectDashboardComponent } from './selectdashboard/select-dashboard.component';
 import { SelectBinaryComponent } from './selectbinary/select-binary.component';
+import { SelectEplFileComponent } from './selecteplfile/select-epl-file.component';
 
 
 @Component({
@@ -358,6 +359,12 @@ export class MigrateComponent {
         });
     }
 
+    openSelectEPLFileModal(eplFileMigration: EplFileMigration): void {
+        const modalRef = this.modalService.show(SelectEplFileComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: eplFileMigration.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedEPLFileId) => {
+            this.changeEplFileMigrationUpdateExisting(eplFileMigration, selectedEPLFileId);
+        });
+    }
 
     async changeManagedObjectMigrationUpdateExisting(m: ManagedObjectMigration, existingId: string | undefined) {
         if (existingId) {
