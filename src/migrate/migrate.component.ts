@@ -400,7 +400,7 @@ export class MigrateComponent {
     }
 
     openSelectApplicationModal(application: ApplicationMigration): void {
-        const modalRef = this.modalService.show(SelectApplicationComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: application.updateExisting.id } });
+        const modalRef = this.modalService.show(SelectApplicationComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: application.updateExisting.id.toString() } });
         modalRef.content.onClose.subscribe((selectedApplicationId) => {
             this.changeApplicationMigrationUpdateExisting(application, selectedApplicationId);
         });
