@@ -62,7 +62,7 @@
             <td>{{m.application.key}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="openSelectApplicationModal(m)"><i c8yIcon="pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectApplicationModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td>
@@ -100,7 +100,7 @@
             <td colspan="3">{{getDashboardName(m.managedObject)}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="openSelectDashboardModal(m)"><i c8yIcon="pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectDashboardModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">{{m.newName}}</td>
@@ -127,7 +127,7 @@
             <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="openSelectGroupModal(m)"><i c8yIcon="pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectGroupModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">
@@ -173,7 +173,7 @@
             </td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="openSelectDeviceModal(m)"><i c8yIcon="pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectDeviceModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">
@@ -203,7 +203,7 @@
             <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="openSelectSimulatorsModal(m)"><i c8yIcon="pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectSimulatorsModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">
@@ -233,7 +233,7 @@
             <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="openSelectSmartRuleModal(m)"><i c8yIcon="pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectSmartRuleModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">
@@ -263,7 +263,7 @@
             <td colspan="3">{{eplFile.eplFile.name}}</td>
             <td class="creation-mode">
                 {{eplFile.updateExisting ? 'Update' : 'Create'}}
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="openSelectEPLFileModal(eplFile)"><i c8yIcon="pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectEPLFileModal(eplFile)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{eplFile.updateExisting?.id || '-'}}</td>
             <td colspan="3">
@@ -293,7 +293,7 @@
             <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="openSelectBinaryModal(m)"><i c8yIcon="pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectBinaryModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">
@@ -323,7 +323,7 @@
             <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="openSelectOtherManagedObjectsModal(m)"><i c8yIcon="pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectOtherManagedObjectsModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">

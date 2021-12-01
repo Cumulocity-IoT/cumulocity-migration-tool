@@ -108,6 +108,12 @@
 
   .creation-mode {
     background-color: @gray-light;
+    text-align      : center;
+
+    a {
+      display: block;
+      margin : 4px 8px;
+    }
   }
 
 
@@ -145,5 +151,11 @@ c8y-data-grid {
 
   &.full-modal {
     height: calc(100vh - 250px);
+  }
+
+  .table-data-grid-header {
+    button[title=Reload] {
+      display: none
+    }
   }
 }
