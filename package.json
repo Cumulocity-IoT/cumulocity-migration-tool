@@ -64,7 +64,7 @@
       "globalTitle": "Migration Tool",
       "tabsHorizontal": true,
       "icon": {
-        "class": "fa fa-cloud-upload"
+        "class": "dlt-c8y-icon-cloud-upload"
       }
     },
     "cli": {}
