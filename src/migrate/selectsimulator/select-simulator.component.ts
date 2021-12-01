@@ -15,12 +15,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component, EventEmitter, Input, Output, ViewChild} from "@angular/core";
-import {DataClient} from "../../DataClient";
-import {DataService} from "../../data.service";
-import {sortById} from "../../utils/utils";
-import {IManagedObject} from "@c8y/client";
-import {ModalDirective} from "ngx-bootstrap/modal";
+import { Component, EventEmitter, Input, Output, ViewChild } from "@angular/core";
+import { DataClient } from "../../DataClient";
+import { DataService } from "../../data.service";
+import { sortById } from "../../utils/utils";
+import { IManagedObject } from "@c8y/client";
+import { BsModalRef } from "ngx-bootstrap/modal";
+import { Subject } from "rxjs";
+import { ActionControl, Column, DataGridComponent, Pagination } from "@c8y/ngx-components";
 
 @Component({
     templateUrl: './select-simulator.component.html',
@@ -28,55 +30,72 @@ import {ModalDirective} from "ngx-bootstrap/modal";
 })
 export class SelectSimulatorComponent {
     @Input() selected: string;
-    @Output() selectedChange: EventEmitter<string> = new EventEmitter<string>();
 
-    @ViewChild(ModalDirective) modal: ModalDirective;
+    onClose: Subject<string> = new Subject();
+
+    @ViewChild(DataGridComponent, { static: true })
+    dataGrid: DataGridComponent;
 
     private dataClient: DataClient;
-    allSimulators: Promise<IManagedObject[]>;
 
-    constructor(private dataService: DataService) {
-        this.load();
-    }
+    allSimulators: IManagedObject[];
 
-    load() {
-        this.dataClient = this.dataService.getDestinationDataClient();
-        this.allSimulators = this.dataClient.getSimulators().then(d => sortById(d));
-    }
-
-    isSelected(simulator: IManagedObject): boolean {
-        return simulator.id.toString() == this.selected;
-    }
-
-    toggleSelection(simulator: IManagedObject) {
-        if (this.isSelected(simulator)) {
-            this.selected = undefined;
-        } else {
-            this.selected = simulator.id.toString();
+    columns: Column[] = [
+        {
+            name: 'id',
+            header: 'ID',
+            path: 'id',
+            gridTrackSize: '0.5fr'
+        },
+        {
+            name: 'name',
+            header: 'Name',
+            path: 'name',
         }
+    ];
+
+    pagination: Pagination = {
+        pageSize: 20,
+        currentPage: 1,
+    };
+
+    actionControls: ActionControl[] = [
+        {
+            text: 'View in Device Management',
+            type: 'ACTION',
+            icon: 'bot',
+            callback: ((simulator: IManagedObject) => this.viewSimulator(simulator))
+        },
+        {
+            text: 'View Managed Object',
+            type: 'ACTION',
+            icon: 'file',
+            callback: ((simulator: IManagedObject) => this.viewManagedObject(simulator))
+        }
+    ];
+
+    constructor(private dataService: DataService, private modalRef: BsModalRef) { }
+
+    async ngOnInit(): Promise<void> {
+        await this.load();
+        this.initSelectedEntry();
     }
 
-    trackById(index, value) {
-        return value.id;
+    async load() {
+        this.dataClient = this.dataService.getDestinationDataClient();
+        this.allSimulators = await this.dataClient.getSimulators().then(d => sortById(d));
     }
 
-    getName(simulator: IManagedObject) {
-        return simulator.name || '-';
+    initSelectedEntry(): void {
+        this.dataGrid.selectedItemIds = [this.selected];
     }
 
-    viewManagedObject(event: MouseEvent, managedObject: IManagedObject) {
-        event.stopPropagation();
-        const blob = new Blob([JSON.stringify(managedObject, undefined, 2)], {
-            type: 'application/json'
-        });
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
+    isEntrySelected(): boolean {
+        return !!this.selected;
     }
 
-    viewSimulator(event: MouseEvent, simulator: IManagedObject) {
-        event.stopPropagation();
-        const baseUrl = this.dataClient.getBaseUrl();
-        window.open(`${baseUrl}/apps/devicemanagement/index.html#/simulators/${simulator.id}`, '_blank');
+    getName(name: string) {
+        return name || '-';
     }
 
     reload() {
@@ -84,14 +103,39 @@ export class SelectSimulatorComponent {
         this.load();
     }
 
-    open() {
-        this.modal.show();
+    onEntriesSelected(selectedEntryIds: string[]): void {
+        if (selectedEntryIds.length === 0) {
+            this.selected = undefined;
+            return;
+        }
+
+        const newlySelectedEntryId = selectedEntryIds.find((selectedEntryId) => selectedEntryId != this.selected);
+        if (!newlySelectedEntryId) {
+            return;
+        }
+
+        this.dataGrid.selectedItemIds = [newlySelectedEntryId];
+        this.selected = newlySelectedEntryId;
     }
 
     close(success: boolean = true) {
         if (success) {
-            this.selectedChange.emit(this.selected);
+            this.onClose.next(this.selected);
         }
-        this.modal.hide();
+
+        this.modalRef.hide();
+    }
+
+    viewManagedObject(managedObject: IManagedObject) {
+        const blob = new Blob([JSON.stringify(managedObject, undefined, 2)], {
+            type: 'application/json'
+        });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    }
+
+    viewSimulator(simulator: IManagedObject) {
+        const baseUrl = this.dataClient.getBaseUrl();
+        window.open(`${baseUrl}/apps/devicemanagement/index.html#/simulators/${simulator.id}`, '_blank');
     }
 }

@@ -15,40 +15,50 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
+@import '~@c8y/style/main.less';
 @import '~@c8y/style/extend.less';
 
-.favicon-webpack-loader { background: url('./img/favicon.ico') }
-@{logo-login} { background-image: url('./img/logo2.svg')}
+.favicon-webpack-loader {
+  background: url('./img/favicon.ico')
+}
+
+@{logo-login} {
+  background-image: url('./img/logo2.svg')
+}
+
 @brand-logo-height: 48%;
 
-@{logo-navigator} { background-image: url('./img/logo-white2.svg') }
+@{logo-navigator} {
+  background-image: url('./img/logo-white2.svg')
+}
+
 @navigator-platform-logo-height: 167px;
 
 .navigator .title .tenant-brand {
-  margin-top: -20px;
+  margin-top   : -20px;
   margin-bottom: -30px;
 }
 
 .app-main-header .app-view::before {
   font-family: "FontAwesome";
-  content: "\f0ee";
-  font-size: 2em;
-  width: 32px;
-  transform: scale(1);
-  transition: all .4s ease-in-out;
+  content    : "\f0ee";
+  font-size  : 2em;
+  width      : 32px;
+  transform  : scale(1);
+  transition : all .4s ease-in-out;
 }
 
 .app-main-header.open .app-view::before {
-  width: 0;
+  width    : 0;
   transform: scale(0);
 }
 
-.app-main-header .app-view c8y-app-icon  {
+.app-main-header .app-view c8y-app-icon {
   display: none;
 }
 
 .landing-page {
-  > * {
+  >* {
     margin-bottom: 5px;
   }
 }
@@ -61,10 +71,10 @@
   }
 
   .navigator-slot-bottom::before {
-    content: "Written by Software AG Global Presales";
+    content   : "Written by Software AG Global Presales";
     text-align: center;
-    width: 100%;
-    display: block;
+    width     : 100%;
+    display   : block;
   }
 }
 
@@ -73,28 +83,37 @@
 }
 
 .migration-table {
-  table-layout:fixed;
+  table-layout: fixed;
 
   td {
-    white-space: nowrap;
-    overflow: hidden;
+    white-space  : nowrap;
+    overflow     : hidden;
     text-overflow: ellipsis;
   }
 
   .migration-header {
     background-color: @gray;
-    > th {
-      font-size: 1.5em !important;
-      color: white !important;
+
+    >th {
+      font-size     : 1.5em !important;
+      color         : white !important;
       text-transform: none !important;
     }
   }
+
   .summary-header {
-    font-size: 1.2em;
+    font-size       : 1.2em;
     background-color: @gray-light;
   }
+
   .creation-mode {
     background-color: @gray-light;
+    text-align      : center;
+
+    a {
+      display: block;
+      margin : 4px 8px;
+    }
   }
 
 
@@ -102,14 +121,41 @@
     .hover-show {
       visibility: hidden;
     }
+
     &:hover {
       background-color: @table-bg-hover;
+
       .hover-show {
         visibility: visible;
       }
     }
   }
 }
+
 .version {
   float: right;
+}
+
+c8y-data-grid {
+  &.disable-bulk-selection {
+    th.cdk-column-checkbox {
+      label.c8y-checkbox {
+        display: none !important;
+      }
+    }
+  }
+
+  &.full-screen {
+    height: calc(100vh - 120px);
+  }
+
+  &.full-modal {
+    height: calc(100vh - 250px);
+  }
+
+  .table-data-grid-header {
+    button[title=Reload] {
+      display: none
+    }
+  }
 }

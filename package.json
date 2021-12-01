@@ -1,13 +1,12 @@
 {
   "name": "migration-tool",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "A tool for migrating applications, dashboards, and other managed objects between Cumulocity Tenants",
   "main": "index.js",
   "scripts": {
     "start": "c8ycli server --env.extraWebpackConfig=./extra-webpack.config.js",
     "build": "c8ycli build --env.extraWebpackConfig=./extra-webpack.config.js",
     "deploy": "c8ycli deploy --env.extraWebpackConfig=./extra-webpack.config.js",
-    "preinstall": "npx npm-force-resolutions",
     "postinstall": "patch-package"
   },
   "keywords": [
@@ -19,51 +18,53 @@
   "repository": "github:SoftwareAG/cumulocity-migration-tool",
   "author": "Richard Peach - Software AG",
   "license": "Apache-2.0",
-  "resolutions": {
-    "graceful-fs": "^4.2.4"
-  },
   "dependencies": {
-    "@angular/animations": "7.2.2",
-    "@angular/common": "7.2.2",
-    "@angular/compiler": "7.2.2",
-    "@angular/core": "7.2.2",
-    "@angular/forms": "7.2.2",
-    "@angular/http": "7.2.2",
-    "@angular/platform-browser": "7.2.2",
-    "@angular/platform-browser-dynamic": "7.2.2",
-    "@angular/router": "7.2.2",
-    "@angular/upgrade": "7.2.2",
-    "@c8y/ngx-components": "1004.0.8",
-    "@c8y/style": "1004.0.8",
+    "@angular/animations": "11.1.2",
+    "@angular/cdk": "11.1.2",
+    "@angular/common": "11.1.2",
+    "@angular/compiler": "11.1.2",
+    "@angular/core": "11.1.2",
+    "@angular/forms": "11.1.2",
+    "@angular/platform-browser": "11.1.2",
+    "@angular/platform-browser-dynamic": "11.1.2",
+    "@angular/router": "11.1.2",
+    "@angular/upgrade": "11.1.2",
+    "@c8y/ngx-components": "1011.0.5",
+    "@c8y/style": "1011.0.5",
+    "@ngx-translate/core": "12.1.1",
     "core-js": "^2.6.2",
     "downloadjs": "^1.4.7",
     "jszip": "^3.2.1",
     "lodash": "^4.17.11",
     "object-scan": "^10.0.3",
-    "rxjs": "~6.3.3",
-    "zone.js": "~0.8.28"
+    "rxjs": "~6.6.3",
+    "zone.js": "~0.11.4"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~0.10.4",
-    "@angular/compiler-cli": "7.2.2",
-    "@angular/language-service": "7.2.2",
-    "@c8y/cli": "1004.0.8",
+    "@angular-devkit/build-angular": "0.1101.4",
+    "@angular/compiler-cli": "11.1.2",
+    "@angular/language-service": "11.1.2",
+    "@angular/localize": "11.1.2",
+    "@types/webpack": "^5.28.0",
+    "@c8y/cli": "1011.0.5",
     "@types/downloadjs": "^1.4.1",
     "@types/jszip": "^3.1.6",
     "@types/lodash": "^4.14.134",
+    "autoprefixer": "^10.3.5",
     "patch-package": "^6.1.2",
-    "typescript": "3.1.6"
+    "typescript": "4.0.7"
   },
   "c8y": {
     "application": {
       "name": "Migration Tool",
       "contextPath": "migration-tool",
       "key": "migration-tool-application-key",
+      "entryModule": "app.module#AppModule",
       "brandingEntry": "./branding/branding.less",
       "globalTitle": "Migration Tool",
       "tabsHorizontal": true,
       "icon": {
-        "class": "fa fa-cloud-upload"
+        "class": "dlt-c8y-icon-cloud-upload"
       }
     },
     "cli": {}

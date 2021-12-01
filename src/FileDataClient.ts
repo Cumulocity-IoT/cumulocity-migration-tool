@@ -99,8 +99,7 @@ export class FileDataClient extends DataClient {
             throw new Error('Invalid file');
         }
         return {
-            userName: "file",
-            displayName: "file"
+            userName: "file"
         }
     }
 

@@ -15,12 +15,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component, EventEmitter, Input, Output, ViewChild} from "@angular/core";
-import {DataClient} from "../../DataClient";
-import {DataService} from "../../data.service";
-import {sortById} from "../../utils/utils";
-import {IManagedObject} from "@c8y/client";
-import {ModalDirective} from "ngx-bootstrap/modal";
+import { Component, EventEmitter, Input, Output, ViewChild } from "@angular/core";
+import { DataClient } from "../../DataClient";
+import { DataService } from "../../data.service";
+import { sortById } from "../../utils/utils";
+import { IManagedObject } from "@c8y/client";
+import { BsModalRef } from "ngx-bootstrap/modal";
+import { ActionControl, Column, DataGridComponent, Pagination } from "@c8y/ngx-components";
+import { Subject } from "rxjs";
 
 @Component({
     templateUrl: './select-binary.component.html',
@@ -28,51 +30,65 @@ import {ModalDirective} from "ngx-bootstrap/modal";
 })
 export class SelectBinaryComponent {
     @Input() selected: string;
-    @Output() selectedChange: EventEmitter<string> = new EventEmitter<string>();
 
-    @ViewChild(ModalDirective) modal: ModalDirective;
+    onClose: Subject<string> = new Subject();
+
+    @ViewChild(DataGridComponent, { static: true })
+    dataGrid: DataGridComponent;
 
     private dataClient: DataClient;
-    allBinaries: Promise<IManagedObject[]>;
 
-    constructor(private dataService: DataService) {
-        this.load();
+    allBinaries: IManagedObject[];
+
+    columns: Column[] = [
+        {
+            name: 'id',
+            header: 'ID',
+            path: 'id',
+            gridTrackSize: '0.5fr'
+        },
+        {
+            name: 'name',
+            header: 'Name',
+            path: 'name',
+            filterable: true,
+        }
+    ];
+
+    pagination: Pagination = {
+        pageSize: 20,
+        currentPage: 1,
+    };
+
+    actionControls: ActionControl[] = [
+        {
+            text: 'View Managed Object',
+            type: 'ACTION',
+            icon: 'file',
+            callback: ((binary: IManagedObject) => this.viewManagedObject(binary))
+        }
+    ];
+
+    constructor(private dataService: DataService, private modalRef: BsModalRef) { }
+
+    async ngOnInit(): Promise<void> {
+        await this.load();
+        this.initSelectedEntry();
     }
 
-    load() {
+    async load() {
         this.dataClient = this.dataService.getDestinationDataClient();
-        this.allBinaries = this.dataClient.getBinaries()
+        this.allBinaries = await this.dataClient.getBinaries()
             .then(binaries => binaries.filter(b => !b.hasOwnProperty('c8y_applications_storage')))
             .then(d => sortById(d));
     }
 
-    isSelected(b: IManagedObject): boolean {
-        return b.id.toString() == this.selected;
+    initSelectedEntry(): void {
+        this.dataGrid.selectedItemIds = [this.selected];
     }
 
-    toggleSelection(b: IManagedObject) {
-        if (this.isSelected(b)) {
-            this.selected = undefined;
-        } else {
-            this.selected = b.id.toString();
-        }
-    }
-
-    trackById(index, value) {
-        return value.id;
-    }
-
-    getName(b: IManagedObject) {
-        return b.name || '-';
-    }
-
-    viewManagedObject(event: MouseEvent, managedObject: IManagedObject) {
-        event.stopPropagation();
-        const blob = new Blob([JSON.stringify(managedObject, undefined, 2)], {
-            type: 'application/json'
-        });
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
+    isEntrySelected(): boolean {
+        return !!this.selected;
     }
 
     reload() {
@@ -80,14 +96,34 @@ export class SelectBinaryComponent {
         this.load();
     }
 
-    open() {
-        this.modal.show();
+    onEntriesSelected(selectedEntryIds: string[]): void {
+        if (selectedEntryIds.length === 0) {
+            this.selected = undefined;
+            return;
+        }
+
+        const newlySelectedEntryId = selectedEntryIds.find((selectedEntryId) => selectedEntryId != this.selected);
+        if (!newlySelectedEntryId) {
+            return;
+        }
+
+        this.dataGrid.selectedItemIds = [newlySelectedEntryId];
+        this.selected = newlySelectedEntryId;
     }
 
     close(success: boolean = true) {
         if (success) {
-            this.selectedChange.emit(this.selected);
+            this.onClose.next(this.selected);
         }
-        this.modal.hide();
+
+        this.modalRef.hide();
+    }
+
+    viewManagedObject(managedObject: IManagedObject) {
+        const blob = new Blob([JSON.stringify(managedObject, undefined, 2)], {
+            type: 'application/json'
+        });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
     }
 }

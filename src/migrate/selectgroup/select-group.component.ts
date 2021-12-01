@@ -15,12 +15,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component, EventEmitter, Input, Output, ViewChild} from "@angular/core";
-import {DataClient} from "../../DataClient";
-import {DataService} from "../../data.service";
-import {sortById} from "../../utils/utils";
-import {IManagedObject} from "@c8y/client";
-import {ModalDirective} from "ngx-bootstrap/modal";
+import { Component, EventEmitter, Input, Output, ViewChild } from "@angular/core";
+import { DataClient } from "../../DataClient";
+import { DataService } from "../../data.service";
+import { sortById } from "../../utils/utils";
+import { IManagedObject } from "@c8y/client";
+import { BsModalRef } from "ngx-bootstrap/modal";
+import { Subject } from "rxjs";
+import { ActionControl, Column, DataGridComponent, Pagination } from "@c8y/ngx-components";
 
 @Component({
     templateUrl: './select-group.component.html',
@@ -28,61 +30,72 @@ import {ModalDirective} from "ngx-bootstrap/modal";
 })
 export class SelectGroupComponent {
     @Input() selected: string;
-    @Output() selectedChange: EventEmitter<string> = new EventEmitter<string>();
 
-    @ViewChild(ModalDirective) modal: ModalDirective;
+    onClose: Subject<string> = new Subject();
+
+    @ViewChild(DataGridComponent, { static: true })
+    dataGrid: DataGridComponent;
 
     private dataClient: DataClient;
-    allGroups: Promise<IManagedObject[]>;
 
-    constructor(private dataService: DataService) {
-        this.load();
-    }
+    allGroups: IManagedObject[];
 
-    load() {
-        this.dataClient = this.dataService.getDestinationDataClient();
-        this.allGroups = this.dataClient.getGroups().then(d => sortById(d));
-    }
-
-    isSelected(device: IManagedObject): boolean {
-        return device.id.toString() == this.selected;
-    }
-
-    toggleSelection(device: IManagedObject) {
-        if (this.isSelected(device)) {
-            this.selected = undefined;
-        } else {
-            this.selected = device.id.toString();
+    columns: Column[] = [
+        {
+            name: 'id',
+            header: 'ID',
+            path: 'id',
+            gridTrackSize: '0.5fr'
+        },
+        {
+            name: 'name',
+            header: 'Name',
+            path: 'name',
+            filterable: true,
         }
+    ];
+
+    pagination: Pagination = {
+        pageSize: 20,
+        currentPage: 1,
+    };
+
+    actionControls: ActionControl[] = [
+        {
+            text: 'View in Cockpit',
+            type: 'ACTION',
+            callback: ((group: IManagedObject) => this.viewCockpit(group))
+        },
+        {
+            text: 'View in Device Management',
+            type: 'ACTION',
+            callback: ((group: IManagedObject) => this.viewDeviceManagement(group))
+        },
+        {
+            text: 'View Managed Object',
+            type: 'ACTION',
+            callback: ((group: IManagedObject) => this.viewManagedObject(group))
+        }
+    ];
+
+    constructor(private dataService: DataService, private modalRef: BsModalRef) { }
+
+    async ngOnInit(): Promise<void> {
+        await this.load();
+        this.initSelectedEntry();
     }
 
-    trackById(index, value) {
-        return value.id;
+    async load() {
+        this.dataClient = this.dataService.getDestinationDataClient();
+        this.allGroups = await this.dataClient.getGroups().then(d => sortById(d));
     }
 
-    getName(group: IManagedObject) {
-        return group.name || '-';
+    initSelectedEntry(): void {
+        this.dataGrid.selectedItemIds = [this.selected];
     }
 
-    viewManagedObject(event: MouseEvent, managedObject: IManagedObject) {
-        event.stopPropagation();
-        const blob = new Blob([JSON.stringify(managedObject, undefined, 2)], {
-            type: 'application/json'
-        });
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
-    }
-
-    viewDeviceManagement(event: MouseEvent, group: IManagedObject) {
-        event.stopPropagation();
-        const baseUrl = this.dataClient.getBaseUrl();
-        window.open(`${baseUrl}/apps/devicemanagement/index.html#/group/${group.id}/group-info`, '_blank');
-    }
-
-    viewCockpit(event: MouseEvent, group: IManagedObject) {
-        event.stopPropagation();
-        const baseUrl = this.dataClient.getBaseUrl();
-        window.open(`${baseUrl}/apps/cockpit/index.html#/group/${group.id}/info`, '_blank');
+    isEntrySelected(): boolean {
+        return !!this.selected;
     }
 
     reload() {
@@ -90,14 +103,44 @@ export class SelectGroupComponent {
         this.load();
     }
 
-    open() {
-        this.modal.show();
+    onEntriesSelected(selectedEntryIds: string[]): void {
+        if (selectedEntryIds.length === 0) {
+            this.selected = undefined;
+            return;
+        }
+
+        const newlySelectedEntryId = selectedEntryIds.find((selectedEntryId) => selectedEntryId != this.selected);
+        if (!newlySelectedEntryId) {
+            return;
+        }
+
+        this.dataGrid.selectedItemIds = [newlySelectedEntryId];
+        this.selected = newlySelectedEntryId;
     }
 
     close(success: boolean = true) {
         if (success) {
-            this.selectedChange.emit(this.selected);
+            this.onClose.next(this.selected);
         }
-        this.modal.hide();
+
+        this.modalRef.hide();
+    }
+
+    viewManagedObject(managedObject: IManagedObject) {
+        const blob = new Blob([JSON.stringify(managedObject, undefined, 2)], {
+            type: 'application/json'
+        });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    }
+
+    viewDeviceManagement(group: IManagedObject) {
+        const baseUrl = this.dataClient.getBaseUrl();
+        window.open(`${baseUrl}/apps/devicemanagement/index.html#/group/${group.id}/group-info`, '_blank');
+    }
+
+    viewCockpit(group: IManagedObject) {
+        const baseUrl = this.dataClient.getBaseUrl();
+        window.open(`${baseUrl}/apps/cockpit/index.html#/group/${group.id}/info`, '_blank');
     }
 }

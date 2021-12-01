@@ -1,37 +1,5 @@
 <c8y-title translate>Smart Rules</c8y-title>
-<c8y-action-bar-item [placement]="'left'">
-    <button class="btn btn-link" style="margin-top: 5px;" (click)="selectAll()">
-        <i class="fa fa-check"></i> {{'Select All' | translate}}
-    </button>
-</c8y-action-bar-item>
-<c8y-action-bar-item [placement]="'left'">
-    <button class="btn btn-link" style="margin-top: 5px;" (click)="deselectAll()">
-        <i class="fa fa-close"></i> {{'Deselect All' | translate}}
-    </button>
-</c8y-action-bar-item>
-<c8y-action-bar-item [placement]="'right'">
-    <button class="btn btn-link" style="margin-top: 5px;" (click)="reload()">
-        <i class="fa fa-refresh"></i> {{'Reload' | translate}}
-    </button>
-</c8y-action-bar-item>
-<table class="table table-hover" *ngIf="allSmartRules | async as smartRules">
-    <tr>
-        <th></th>
-        <th translate>Id</th>
-        <th translate>Name</th>
-        <th translate>Owner</th>
-        <th></th>
-        <th></th>
-    </tr>
-    <tr *ngFor="let managedObject of smartRules; trackBy: trackById" (click)="toggleSelection(managedObject)"
-        [class.info]="isSelected(managedObject)">
-        <td><input type="checkbox" [checked]="isSelected(managedObject)" /></td>
-        <td>{{managedObject.id}}</td>
-        <td>{{getName(managedObject)}}</td>
-        <td>{{managedObject.owner}}</td>
-        <td><button class="btn btn-default" (click)="viewSmartRule($event, managedObject)" translate>Cockpit</button>
-        </td>
-        <td><button class="btn btn-default" (click)="viewManagedObject($event, managedObject)"
-                translate>ManagedObject</button></td>
-    </tr>
-</table>
+
+<c8y-data-grid class="full-screen scroll-column" [title]="'Smart Rules' | translate" [columns]="columns" [rows]="allSmartRules" [pagination]="pagination"
+    [selectable]="true" [bulkActionControls]="[]" [actionControls]="actionControls" (itemsSelect)="onSmartRulesSelected($event)">
+</c8y-data-grid>

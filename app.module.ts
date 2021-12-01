@@ -16,13 +16,14 @@
 * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { RouterModule, Routes } from '@angular/router';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterModule as ngRouterModule, Routes } from '@angular/router';
 import { ExampleNavigationFactory } from './factories/Navigation';
 import { ApplicationComponent } from './src/source/application/application.component';
 import {
     CommonModule,
     CoreModule,
+    RouterModule,
     HOOK_NAVIGATOR_NODES,
     BootstrapComponent
 } from '@c8y/ngx-components';
@@ -77,6 +78,8 @@ import { SelectSimulatorComponent } from "./src/migrate/selectsimulator/select-s
 import { SelectSmartRuleComponent } from "./src/migrate/selectsmartrule/select-smart-rule.component";
 import { SelectBinaryComponent } from "./src/migrate/selectbinary/select-binary.component";
 import { SelectEplFileComponent } from './src/migrate/selecteplfile/select-epl-file.component';
+import { SimulatorCellRendererComponent } from './src/source/device/cell-renderer/simulator-cell-renderer.component';
+import { DashboardNameCellRendererComponent } from './src/source/dashboard/cell-renderer/dashboard-name-cell-renderer.component';
 
 /**
  * Angular Routes.
@@ -154,9 +157,11 @@ const appRoutes: Routes = [
         SourceCredentialsComponent,
         DestinationCredentialsComponent,
         ApplicationComponent,
+        DashboardNameCellRendererComponent,
         DashboardComponent,
         GroupComponent,
         DeviceComponent,
+        SimulatorCellRendererComponent,
         SimulatorComponent,
         SmartRuleComponent,
         EplFilesComponent,
@@ -174,13 +179,27 @@ const appRoutes: Routes = [
         SelectEplFileComponent,
         SelectBinaryComponent
     ],
+    entryComponents: [
+        DashboardNameCellRendererComponent,
+        SimulatorCellRendererComponent,
+        SelectApplicationComponent,
+        SelectBinaryComponent,
+        SelectDashboardComponent,
+        SelectDeviceComponent,
+        SelectEplFileComponent,
+        SelectGroupComponent,
+        SelectOtherComponent,
+        SelectSimulatorComponent,
+        SelectSmartRuleComponent
+    ],
     imports: [
-        BrowserModule,
-        RouterModule.forRoot(appRoutes, { enableTracing: false, useHash: true }),
+        BrowserAnimationsModule,
+        RouterModule.forRoot(),
+        ngRouterModule.forRoot(appRoutes, { enableTracing: false, useHash: true }),
         // Import the CoreModule to allow use of the `c8y-` prefixed components
-        CoreModule,
+        CoreModule.forRoot(),
         // Import the CommonModule to allow use of data access and translations
-        CommonModule,
+        CommonModule.forRoot(),
         FormsModule,
         ButtonsModule.forRoot(),
         ModalModule.forRoot()

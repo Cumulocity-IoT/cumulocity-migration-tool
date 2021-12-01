@@ -15,15 +15,16 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component, TemplateRef, ViewChild} from '@angular/core';
-import {IApplication, IManagedObject} from '@c8y/client';
-import {DataService} from "../data.service";
-import {SelectionService} from "../selection.service";
-import {getDashboardName} from "../utils/utils";
-import {AlertService} from "@c8y/ngx-components";
+import { Component, TemplateRef, ViewChild } from '@angular/core';
+import { IApplication, IManagedObject } from '@c8y/client';
+import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { DataService } from "../data.service";
+import { SelectionService } from "../selection.service";
+import { getDashboardName } from "../utils/utils";
+import { AlertService } from "@c8y/ngx-components";
 import download from "downloadjs";
-import {FileDataClient} from "../FileDataClient";
-import {UpdateableAlert} from "../utils/UpdateableAlert";
+import { FileDataClient } from "../FileDataClient";
+import { UpdateableAlert } from "../utils/UpdateableAlert";
 import {
     ApplicationMigration,
     EplFileMigration,
@@ -32,9 +33,18 @@ import {
     MigrationLogEvent,
     MigrationLogLevel
 } from "./migration.service";
-import {filter} from 'rxjs/operators';
-import {BehaviorSubject} from "rxjs";
+import { filter } from 'rxjs/operators';
+import { BehaviorSubject } from "rxjs";
 import { IEplFileConfiguration } from 'src/c8y-interfaces/IEplFileConfig';
+import { SelectDeviceComponent } from './selectdevice/select-device.component';
+import { SelectDashboardComponent } from './selectdashboard/select-dashboard.component';
+import { SelectBinaryComponent } from './selectbinary/select-binary.component';
+import { SelectEplFileComponent } from './selecteplfile/select-epl-file.component';
+import { SelectGroupComponent } from './selectgroup/select-group.component';
+import { SelectOtherComponent } from './selectother/select-other.component';
+import { SelectSimulatorComponent } from './selectsimulator/select-simulator.component';
+import { SelectSmartRuleComponent } from './selectsmartrule/select-smart-rule.component';
+import { SelectApplicationComponent } from './selectapplication/select-application.component';
 
 
 @Component({
@@ -64,7 +74,8 @@ export class MigrateComponent {
 
     isMigrateExternalIds = true;
 
-    constructor(private dataService: DataService, private selectionService: SelectionService, private alertService: AlertService) {
+    constructor(private dataService: DataService, private selectionService: SelectionService,
+        private alertService: AlertService, private modalService: BsModalService) {
         this.loadData();
     }
 
@@ -114,7 +125,7 @@ export class MigrateComponent {
             });
             selectedSmartRules.length = 0;
         }
-        
+
         if (selectedSimulators.length > 0 && !await destinationClient.checkSupportFor('Simulators')) {
             this.alertService.add({
                 type: 'danger',
@@ -203,7 +214,7 @@ export class MigrateComponent {
         return this.editing && this.editing === objectId;
     }
 
-    getObjectId(object: ManagedObjectMigration | ApplicationMigration | EplFileMigration) : string {
+    getObjectId(object: ManagedObjectMigration | ApplicationMigration | EplFileMigration): string {
         if (object.hasOwnProperty('managedObject')) {
             return (object as ManagedObjectMigration).managedObject.id.toString();
         }
@@ -233,7 +244,7 @@ export class MigrateComponent {
 
     resetDashboardMigration(dashboardMigration: ManagedObjectMigration) {
         if (dashboardMigration.updateExisting) {
-            dashboardMigration.newName =  getDashboardName(dashboardMigration.updateExisting);
+            dashboardMigration.newName = getDashboardName(dashboardMigration.updateExisting);
         } else {
             dashboardMigration.newName = getDashboardName(dashboardMigration.managedObject);
         }
@@ -241,9 +252,9 @@ export class MigrateComponent {
 
     resetManagedObjectMigration(managedObjectMigration: ManagedObjectMigration) {
         if (managedObjectMigration.updateExisting) {
-            managedObjectMigration.newName =  managedObjectMigration.updateExisting.name;
+            managedObjectMigration.newName = managedObjectMigration.updateExisting.name;
         } else {
-            managedObjectMigration.newName =  managedObjectMigration.managedObject.name;
+            managedObjectMigration.newName = managedObjectMigration.managedObject.name;
         }
     }
 
@@ -279,7 +290,7 @@ export class MigrateComponent {
         ).subscribe(log => alrt.update(log.description));
 
         const consoleLogger = migration.log$.subscribe(log => {
-            switch(log.level) {
+            switch (log.level) {
                 case MigrationLogLevel.Verbose:
                 case MigrationLogLevel.Info:
                     console.info(log.description);
@@ -290,11 +301,11 @@ export class MigrateComponent {
             }
         });
 
-        const lastLogMessage = new BehaviorSubject<MigrationLogEvent|undefined>(undefined);
+        const lastLogMessage = new BehaviorSubject<MigrationLogEvent | undefined>(undefined);
         const lastLogSubscriber = migration.log$.subscribe(lastLogMessage);
 
         try {
-            await migration.migrate(this.deviceMigrations, this.simulatorMigrations, this.groupMigrations, this.otherMigrations, 
+            await migration.migrate(this.deviceMigrations, this.simulatorMigrations, this.groupMigrations, this.otherMigrations,
                 this.smartRuleMigrations, this.dashboardMigrations, this.binaryMigrations, this.appMigrations, this.eplFileMigrations, this.isMigrateExternalIds);
 
             if (destinationClient instanceof FileDataClient) {
@@ -306,14 +317,14 @@ export class MigrateComponent {
                 alrt.close(1000);
             }
             this.dirty = false;
-        } catch(e) {
+        } catch (e) {
             if (lastLogMessage.getValue() != undefined) {
                 alrt.update(`Failed to migrate!\nFailed at: ${lastLogMessage.getValue().description}\n${this.getErrorMessage(e)}\nCheck browser console for more details`, 'danger');
             } else {
                 alrt.update(`Failed to migrate!\n${this.getErrorMessage(e)}\nCheck browser console for more details`, 'danger');
             }
 
-            throw(e);
+            throw (e);
         } finally {
             infoLogger.unsubscribe();
             consoleLogger.unsubscribe();
@@ -330,6 +341,69 @@ export class MigrateComponent {
         } else {
             return 'Error: An Unknown Error occurred';
         }
+    }
+
+    openSelectDeviceModal(deviceManagedObject: ManagedObjectMigration): void {
+        const modalRef = this.modalService.show(SelectDeviceComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: deviceManagedObject.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedDeviceId) => {
+            this.changeManagedObjectMigrationUpdateExisting(deviceManagedObject, selectedDeviceId);
+        });
+    }
+
+    openSelectGroupModal(groupManagedObject: ManagedObjectMigration): void {
+        const modalRef = this.modalService.show(SelectGroupComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: groupManagedObject.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedGroupId) => {
+            this.changeManagedObjectMigrationUpdateExisting(groupManagedObject, selectedGroupId);
+        });
+    }
+
+    openSelectOtherManagedObjectsModal(managedObject: ManagedObjectMigration): void {
+        const modalRef = this.modalService.show(SelectOtherComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: managedObject.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedManagedObjectId) => {
+            this.changeManagedObjectMigrationUpdateExisting(managedObject, selectedManagedObjectId);
+        });
+    }
+
+    openSelectDashboardModal(dashboardManagedObject: ManagedObjectMigration): void {
+        const modalRef = this.modalService.show(SelectDashboardComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: dashboardManagedObject.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedDashboardId) => {
+            this.changeDashboardMigrationUpdateExisting(dashboardManagedObject, selectedDashboardId);
+        });
+    }
+
+    openSelectBinaryModal(binaryManagedObject: ManagedObjectMigration): void {
+        const modalRef = this.modalService.show(SelectBinaryComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: binaryManagedObject.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedBinaryId) => {
+            this.changeManagedObjectMigrationUpdateExisting(binaryManagedObject, selectedBinaryId);
+        });
+    }
+
+    openSelectEPLFileModal(eplFileMigration: EplFileMigration): void {
+        const modalRef = this.modalService.show(SelectEplFileComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: eplFileMigration.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedEPLFileId) => {
+            this.changeEplFileMigrationUpdateExisting(eplFileMigration, selectedEPLFileId);
+        });
+    }
+
+    openSelectSimulatorsModal(simulator: ManagedObjectMigration): void {
+        const modalRef = this.modalService.show(SelectSimulatorComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: simulator.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedSimulatorId) => {
+            this.changeManagedObjectMigrationUpdateExisting(simulator, selectedSimulatorId);
+        });
+    }
+
+    openSelectSmartRuleModal(smartRule: ManagedObjectMigration): void {
+        const modalRef = this.modalService.show(SelectSmartRuleComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: smartRule.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedSmartRuleId) => {
+            this.changeManagedObjectMigrationUpdateExisting(smartRule, selectedSmartRuleId);
+        });
+    }
+
+    openSelectApplicationModal(application: ApplicationMigration): void {
+        const modalRef = this.modalService.show(SelectApplicationComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: application.updateExisting.id.toString() } });
+        modalRef.content.onClose.subscribe((selectedApplicationId) => {
+            this.changeApplicationMigrationUpdateExisting(application, selectedApplicationId);
+        });
     }
 
     async changeManagedObjectMigrationUpdateExisting(m: ManagedObjectMigration, existingId: string | undefined) {

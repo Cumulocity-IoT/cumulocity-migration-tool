@@ -2,19 +2,19 @@
 
 <c8y-action-bar-item [placement]="'left'">
     <button class="btn btn-link" style="margin-top: 5px;" (click)="reset()">
-        <i class="fa fa-undo"></i> {{'Reset All' | translate}}
+        <i c8yIcon="undo"></i> {{'Reset All' | translate}}
     </button>
 </c8y-action-bar-item>
 
 <c8y-action-bar-item [placement]="'left'">
     <button *ngIf="canUpdate" class="btn btn-link" style="margin-top: 5px;" (click)="markAllAsCreate()">
-        <i class="fa fa-code-fork"></i> {{'Mark all as Create' | translate}}
+        <i c8yIcon="code-fork"></i> {{'Mark all as Create' | translate}}
     </button>
 </c8y-action-bar-item>
 
 <c8y-action-bar-item [placement]="'right'">
     <button class="btn btn-primary" style="margin-top: 10px;" [disabled]="!canMigrate()" (click)="migrate()">
-        <i class="fa fa-exchange"></i> {{'Execute Migration' | translate}}
+        <i c8yIcon="exchange"></i> {{'Execute Migration' | translate}}
     </button>
 </c8y-action-bar-item>
 
@@ -35,7 +35,7 @@
     <thead>
         <tr class="migration-header">
             <th colspan="4">From {{from}}</th>
-            <th><i class="fa fa-arrow-right fa-2x"></i></th>
+            <th><i c8yIcon="arrow-right"></i></th>
             <th colspan="5">To {{to}}</th>
         </tr>
     </thead>
@@ -62,8 +62,7 @@
             <td>{{m.application.key}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <selectApplication #modal [selected]="m.updateExisting?.id.toString()" (selectedChange)="changeApplicationMigrationUpdateExisting(m, $event)"></selectApplication>
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectApplicationModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td>
@@ -79,8 +78,8 @@
                 <ng-template #notEditModeAppKey>{{m.newAppKey}}</ng-template>
             </td>
             <td class="text-right">
-                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetApplicationMigration(m)"><i class="fa fa-undo"></i></a>
-                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i class="fa fa-pencil"></i></a>
+                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetApplicationMigration(m)"><i c8yIcon="undo"></i></a>
+                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i c8yIcon="pencil"></i></a>
             </td>
         </tr>
     </tbody>
@@ -101,14 +100,13 @@
             <td colspan="3">{{getDashboardName(m.managedObject)}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <selectDashboard #modal [selected]="m.updateExisting?.id" (selectedChange)="changeDashboardMigrationUpdateExisting(m, $event)"></selectDashboard>
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectDashboardModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">{{m.newName}}</td>
             <td class="text-right">
-                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetDashboardMigration(m)"><i class="fa fa-undo"></i></a>
-                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i class="fa fa-pencil"></i></a>
+                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetDashboardMigration(m)"><i c8yIcon="undo"></i></a>
+                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i c8yIcon="pencil"></i></a>
             </td>
         </tr>
     </tbody>
@@ -129,8 +127,7 @@
             <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <selectGroup #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectGroup>
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectGroupModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">
@@ -138,8 +135,8 @@
                 <ng-template #notEditMode>{{m.newName}}</ng-template>
             </td>
             <td class="text-right">
-                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetManagedObjectMigration(m)"><i class="fa fa-undo"></i></a>
-                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i class="fa fa-pencil"></i></a>
+                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetManagedObjectMigration(m)"><i c8yIcon="undo"></i></a>
+                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i c8yIcon="pencil"></i></a>
             </td>
         </tr>
     </tbody>
@@ -176,8 +173,7 @@
             </td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <selectDevice #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectDevice>
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectDeviceModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">
@@ -185,8 +181,8 @@
                 <ng-template #notEditMode>{{m.newName}}</ng-template>
             </td>
             <td class="text-right">
-                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetManagedObjectMigration(m)"><i class="fa fa-undo"></i></a>
-                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i class="fa fa-pencil"></i></a>
+                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetManagedObjectMigration(m)"><i c8yIcon="undo"></i></a>
+                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i c8yIcon="pencil"></i></a>
             </td>
         </tr>
     </tbody>
@@ -207,8 +203,7 @@
             <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <selectSimulator #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectSimulator>
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectSimulatorsModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">
@@ -216,8 +211,8 @@
                 <ng-template #notEditMode>{{m.newName}}</ng-template>
             </td>
             <td class="text-right">
-                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetManagedObjectMigration(m)"><i class="fa fa-undo"></i></a>
-                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i class="fa fa-pencil"></i></a>
+                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetManagedObjectMigration(m)"><i c8yIcon="undo"></i></a>
+                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i c8yIcon="pencil"></i></a>
             </td>
         </tr>
     </tbody>
@@ -238,8 +233,7 @@
             <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <selectSmartRule #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectSmartRule>
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectSmartRuleModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">
@@ -247,8 +241,8 @@
                 <ng-template #notEditMode>{{m.newName}}</ng-template>
             </td>
             <td class="text-right">
-                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetManagedObjectMigration(m)"><i class="fa fa-undo"></i></a>
-                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i class="fa fa-pencil"></i></a>
+                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetManagedObjectMigration(m)"><i c8yIcon="undo"></i></a>
+                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i c8yIcon="pencil"></i></a>
             </td>
         </tr>
     </tbody>
@@ -269,8 +263,7 @@
             <td colspan="3">{{eplFile.eplFile.name}}</td>
             <td class="creation-mode">
                 {{eplFile.updateExisting ? 'Update' : 'Create'}}
-                <selectEplFile #modal [selected]="eplFile.updateExisting?.id" (selectedChange)="changeEplFileMigrationUpdateExisting(eplFile, $event)"></selectEplFile>
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectEPLFileModal(eplFile)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{eplFile.updateExisting?.id || '-'}}</td>
             <td colspan="3">
@@ -278,8 +271,8 @@
                 <ng-template #notEditMode>{{eplFile.newName}}</ng-template>
             </td>
             <td class="text-right">
-                <a *ngIf="isInEditMode(eplFile)" class="btn btn-primary" (click)="resetEplFileMigration(eplFile)"><i class="fa fa-undo"></i></a>
-                <a class="btn btn-primary" (click)="toggleEditMode(eplFile)"><i class="fa fa-pencil"></i></a>
+                <a *ngIf="isInEditMode(eplFile)" class="btn btn-primary" (click)="resetEplFileMigration(eplFile)"><i c8yIcon="undo"></i></a>
+                <a class="btn btn-primary" (click)="toggleEditMode(eplFile)"><i c8yIcon="pencil"></i></a>
             </td>
         </tr>
     </tbody>
@@ -300,8 +293,7 @@
             <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <selectBinary #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectBinary>
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectBinaryModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">
@@ -309,8 +301,8 @@
                 <ng-template #notEditMode>{{m.newName}}</ng-template>
             </td>
             <td class="text-right">
-                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetManagedObjectMigration(m)"><i class="fa fa-undo"></i></a>
-                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i class="fa fa-pencil"></i></a>
+                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetManagedObjectMigration(m)"><i c8yIcon="undo"></i></a>
+                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i c8yIcon="pencil"></i></a>
             </td>
         </tr>
     </tbody>
@@ -331,8 +323,7 @@
             <td colspan="3">{{m.managedObject.name}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <selectOther #modal [selected]="m.updateExisting?.id" (selectedChange)="changeManagedObjectMigrationUpdateExisting(m, $event)"></selectOther>
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i class="fa fa-pencil"></i></a>
+                <a class="btn btn-primary hover-show" *ngIf="canUpdate" (click)="openSelectOtherManagedObjectsModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td colspan="3">
@@ -340,8 +331,8 @@
                 <ng-template #notEditMode>{{m.newName}}</ng-template>
             </td>
             <td class="text-right">
-                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetManagedObjectMigration(m)"><i class="fa fa-undo"></i></a>
-                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i class="fa fa-pencil"></i></a>
+                <a *ngIf="isInEditMode(m)" class="btn btn-primary" (click)="resetManagedObjectMigration(m)"><i c8yIcon="undo"></i></a>
+                <a class="btn btn-primary" (click)="toggleEditMode(m)"><i c8yIcon="pencil"></i></a>
             </td>
         </tr>
     </tbody>

@@ -15,61 +15,124 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { IManagedObject } from '@c8y/client';
 import { DataService } from "../../data.service";
 import { SelectionService } from "../../selection.service";
 import { sortById } from "../../utils/utils";
 import { DataClient } from 'src/DataClient';
 import { UpdateableAlert } from "../../utils/UpdateableAlert";
-import { AlertService } from "@c8y/ngx-components";
+import { ActionControl, AlertService, Column, DataGridComponent, Pagination } from "@c8y/ngx-components";
+import { difference } from 'lodash';
 
 @Component({
     templateUrl: './simulator.component.html'
 })
-export class SimulatorComponent {
+export class SimulatorComponent implements OnInit {
+    @ViewChild(DataGridComponent, { static: true })
+    dataGrid: DataGridComponent;
+
     private dataClient: DataClient;
-    allSimulators: Promise<IManagedObject[]>;
 
-    constructor(private dataService: DataService, private selectionService: SelectionService, private alertService: AlertService) {
-        this.load();
-    }
+    allSimulators: IManagedObject[];
 
-    load() {
-        this.dataClient = this.dataService.getSourceDataClient();
-        this.allSimulators = this.dataClient.getSimulators().then(d => sortById(d));
-    }
+    selectedSimulatorIds: string[] = [];
 
-    async toggleSelection(simulator: IManagedObject) {
-        if (this.isSelected(simulator)) {
-            this.selectionService.deselect(simulator.id);
-        } else {
-            const alrt = new UpdateableAlert(this.alertService);
-            this.selectionService.select(simulator.id);
-            alrt.update(`Searching for linked Groups and Devices...`);
-            const { groups, devices, simulators, smartRules, other, childParentLinks } = await this.dataClient.findLinkedFrom(simulator);
-            childParentLinks.forEach(({ child, parent }) => {
-                this.selectionService.select(child, parent);
-            });
-            alrt.update(`Links found: ${groups.length} Groups, ${devices.length} Devices, ${simulators.length - 1} Simulators, ${smartRules.length} Smart Rules, ${other.length} Other`);
-            alrt.close(5000);
+    columns: Column[] = [
+        {
+            name: 'id',
+            header: 'ID',
+            path: 'id',
+            gridTrackSize: '0.5fr'
+        },
+        {
+            name: 'name',
+            header: 'Name',
+            path: 'name',
+            filterable: true,
+        },
+        {
+            name: 'owner',
+            header: 'Owner',
+            path: 'owner',
+            filterable: true,
         }
+    ];
+
+    pagination: Pagination = {
+        pageSize: 20,
+        currentPage: 1,
+    };
+
+    actionControls: ActionControl[] = [
+        {
+            text: 'View in Device Management',
+            type: 'ACTION',
+            icon: 'bot',
+            callback: ((simulator: IManagedObject) => this.viewSimulator(simulator))
+        },
+        {
+            text: 'View Managed Object',
+            type: 'ACTION',
+            icon: 'file',
+            callback: ((simulator: IManagedObject) => this.viewManagedObject(simulator))
+        }
+    ];
+
+    constructor(private dataService: DataService, private selectionService: SelectionService,
+        private alertService: AlertService) { }
+
+    async ngOnInit(): Promise<void> {
+        await this.load();
+        this.initSelectedSimulators();
     }
 
-    isSelected(o: { id: string | number }) {
-        return this.selectionService.isSelected(o.id);
+    private async load() {
+        this.dataClient = this.dataService.getSourceDataClient();
+        this.allSimulators = await this.dataClient.getSimulators().then(d => sortById(d));
     }
 
-    trackById(index, value) {
-        return value.id;
+    private initSelectedSimulators(): void {
+        this.allSimulators.forEach((simulator) => {
+            if (this.isSelected(simulator.id)) {
+                this.selectedSimulatorIds.push(simulator.id);
+            }
+        });
+
+        this.dataGrid.setItemsSelected(this.selectedSimulatorIds, true);
     }
 
-    getName(managedObject: IManagedObject) {
-        return managedObject.name || '-';
+    onSimulatorsSelected(selectedSimulatorIds): void {
+        selectedSimulatorIds.forEach((selectedSimulatorId) => {
+            if (!this.isSelected(selectedSimulatorId)) {
+                this.selectSimulator(selectedSimulatorId);
+            }
+        });
+
+        const simulatorsToDeselect = difference(this.selectedSimulatorIds, selectedSimulatorIds);
+        this.selectedSimulatorIds = selectedSimulatorIds;
+
+        simulatorsToDeselect.forEach(simulatorToDeselect => this.selectionService.deselect(simulatorToDeselect));
     }
 
-    viewManagedObject(event: MouseEvent, managedObject: IManagedObject) {
-        event.stopPropagation();
+    private async selectSimulator(simulatorId: string): Promise<void> {
+        const alrt = new UpdateableAlert(this.alertService);
+        this.selectionService.select(simulatorId);
+        alrt.update(`Searching for linked Groups and Devices...`);
+        const simulator: IManagedObject = this.allSimulators.find((simulator) => simulator.id === simulatorId);
+        const { groups, devices, simulators, smartRules, other, childParentLinks } = await this.dataClient.findLinkedFrom(simulator);
+        childParentLinks.forEach(({ child, parent }) => {
+            this.selectionService.select(child, parent);
+        });
+        alrt.update(`Links found: ${groups.length} Groups, ${devices.length} Devices, ${simulators.length - 1} Simulators, ${smartRules.length} Smart Rules, ${other.length} Other`);
+        alrt.close(5000);
+    }
+
+    private isSelected(id: string) {
+        return this.selectionService.isSelected(id);
+    }
+
+    private viewManagedObject(managedObject: IManagedObject) {
         const blob = new Blob([JSON.stringify(managedObject, undefined, 2)], {
             type: 'application/json'
         });
@@ -77,38 +140,8 @@ export class SimulatorComponent {
         window.open(url, '_blank');
     }
 
-    viewSimulator(event: MouseEvent, simulator: IManagedObject) {
-        event.stopPropagation();
+    private viewSimulator(simulator: IManagedObject) {
         const baseUrl = this.dataClient.getBaseUrl();
         window.open(`${baseUrl}/apps/devicemanagement/index.html#/simulators/${simulator.id}`, '_blank');
-    }
-
-    reload() {
-        this.dataClient.invalidateCache();
-        this.load();
-    }
-
-    async selectAll() {
-        this.allSimulators.then((simulators) => {
-            simulators.forEach(simulator => {
-                if (this.isSelected(simulator)) {
-                    return;
-                }
-
-                this.toggleSelection(simulator);
-            });
-        });
-    }
-
-    async deselectAll() {
-        this.allSimulators.then((simulators) => {
-            simulators.forEach(simulator => {
-                if (!this.isSelected(simulator)) {
-                    return;
-                }
-
-                this.toggleSelection(simulator);
-            });
-        });
     }
 }

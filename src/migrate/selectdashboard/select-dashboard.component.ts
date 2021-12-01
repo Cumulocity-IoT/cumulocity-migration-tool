@@ -15,55 +15,119 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component, EventEmitter, Input, Output, ViewChild} from "@angular/core";
-import {DataClient} from "../../DataClient";
-import {DataService} from "../../data.service";
-import {getDashboardName, sortById} from "../../utils/utils";
-import {IManagedObject} from "@c8y/client";
-import {ModalDirective} from "ngx-bootstrap/modal";
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from "@angular/core";
+import { DataClient } from "../../DataClient";
+import { DataService } from "../../data.service";
+import { getDashboardName, sortById } from "../../utils/utils";
+import { IManagedObject } from "@c8y/client";
+import { BsModalRef } from "ngx-bootstrap/modal";
+import { Subject } from "rxjs";
+import { ActionControl, Column, DataGridComponent, Pagination } from "@c8y/ngx-components";
 
 @Component({
     templateUrl: './select-dashboard.component.html',
     selector: 'selectDashboard'
 })
-export class SelectDashboardComponent {
+export class SelectDashboardComponent implements OnInit {
     @Input() selected: string;
-    @Output() selectedChange: EventEmitter<string> = new EventEmitter<string>();
 
-    @ViewChild(ModalDirective) modal: ModalDirective;
+    onClose: Subject<string> = new Subject();
+
+    @ViewChild(DataGridComponent, { static: true })
+    dataGrid: DataGridComponent;
 
     private dataClient: DataClient;
-    allDashboards: Promise<IManagedObject[]>;
 
-    constructor(private dataService: DataService) {
+    allDashboards: IManagedObject[];
+
+    columns: Column[] = [
+        {
+            name: 'id',
+            header: 'ID',
+            path: 'id',
+            gridTrackSize: '0.5fr'
+        },
+        {
+            name: 'name',
+            header: 'Name',
+            path: 'name',
+            filterable: true,
+        }
+    ];
+
+    pagination: Pagination = {
+        pageSize: 20,
+        currentPage: 1,
+    };
+
+    actionControls: ActionControl[] = [
+        {
+            text: 'Open Dashboard',
+            type: 'ACTION',
+            icon: 'system-task',
+            callback: ((dashboard: IManagedObject) => this.openDashboard(dashboard))
+        },
+        {
+            text: 'View Managed Object',
+            type: 'ACTION',
+            icon: 'file',
+            callback: ((dashboard: IManagedObject) => this.viewManagedObject(dashboard))
+        }
+    ];
+
+    constructor(private dataService: DataService, private modalRef: BsModalRef) { }
+
+    async ngOnInit(): Promise<void> {
+        await this.load();
+        this.initSelectedDashboard();
+    }
+
+    async load() {
+        this.dataClient = this.dataService.getDestinationDataClient();
+        this.allDashboards = await this.dataClient.getDashboards().then(d => sortById(d));
+    }
+
+    initSelectedDashboard(): void {
+        this.dataGrid.selectedItemIds = [this.selected];
+    }
+
+    isDashboardSelected(): boolean {
+        return !!this.selected;
+    }
+
+    getDashboardName(dashboard: IManagedObject): string {
+        return getDashboardName(dashboard);
+    }
+
+    reload() {
+        this.dataClient.invalidateCache();
         this.load();
     }
 
-    load() {
-        this.dataClient = this.dataService.getDestinationDataClient();
-        this.allDashboards = this.dataClient.getDashboards().then(d => sortById(d));
-    }
-
-    isSelected(db: IManagedObject): boolean {
-        return db.id.toString() == this.selected;
-    }
-
-    toggleSelection(db: IManagedObject) {
-        if (this.isSelected(db)) {
+    onDashboardsSelected(selectedDashboardIds: string[]): void {
+        if (selectedDashboardIds.length === 0) {
             this.selected = undefined;
-        } else {
-            this.selected = db.id.toString();
+            return;
         }
+
+        const newlySelectedDashboardId = selectedDashboardIds.find((selectedDashboardId) => selectedDashboardId != this.selected);
+        if (!newlySelectedDashboardId) {
+            return;
+        }
+
+        this.dataGrid.selectedItemIds = [newlySelectedDashboardId];
+        this.selected = newlySelectedDashboardId;
     }
 
-    trackById(index, value) {
-        return value.id;
+    close(success: boolean = true) {
+        if (success) {
+            this.onClose.next(this.selected);
+        }
+
+        this.modalRef.hide();
     }
 
-    readonly getDashboardName = getDashboardName;
-
-    viewManagedObject(event: MouseEvent, managedObject: IManagedObject) {
-        event.stopPropagation();
+    viewManagedObject(managedObject: IManagedObject) {
         const blob = new Blob([JSON.stringify(managedObject, undefined, 2)], {
             type: 'application/json'
         });
@@ -84,24 +148,7 @@ export class SelectDashboardComponent {
         return undefined;
     }
 
-    openDashboard(event: MouseEvent, dashboard: IManagedObject) {
-        event.stopPropagation();
+    openDashboard(dashboard: IManagedObject) {
         window.open(this.getDashboardUrl(dashboard), '_blank');
-    }
-
-    reload() {
-        this.dataClient.invalidateCache();
-        this.load();
-    }
-
-    open() {
-        this.modal.show();
-    }
-
-    close(success: boolean = true) {
-        if (success) {
-            this.selectedChange.emit(this.selected);
-        }
-        this.modal.hide();
     }
 }

@@ -1,37 +1,23 @@
-<div class="modal fade" tabindex="-1" bsModal #modal="bs-modal"
-     role="dialog" aria-labelledby="dialog-events-name">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title pull-left">Applications</h4>
-                <label class="c8y-switch" style="margin-top: -10px; margin-left: 10px; margin-bottom: -11px;">
-                    <input type="checkbox" [ngModel]="showAll$ | async" (ngModelChange)="showAll$.next($event)"/>
-                    <span></span> Show All
-                </label>
-                <button type="button" class="close pull-right" aria-label="Close" (click)="close(false)">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body overflow-auto" style="max-height: calc(100vh - 230px); min-height: 300px;">
-                <table class="table table-hover" *ngIf="filteredApplications | async as applications">
-                    <tr>
-                        <th></th>
-                        <th translate>Id</th>
-                        <th translate>Name</th>
-                        <th></th>
-                    </tr>
-                    <tr *ngFor="let application of applications; trackBy: trackById" (click)="toggleSelection(application)" [class.info]="isSelected(application)">
-                        <td><input type="checkbox" [checked]="isSelected(application)"/></td>
-                        <td>{{application.id}}</td>
-                        <td>{{getName(application)}}</td>
-                        <th><button class="btn btn-default" (click)="openApplication($event, application)" translate>Open</button></th>
-                    </tr>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" (click)="close()">Ok</button>
-                <button type="button" class="btn btn-default" (click)="close(false)">Cancel</button>
-            </div>
-        </div>
-    </div>
+<div class="modal-header">
+    <h3>Update selected Application for destination</h3>
+    <label class="c8y-switch" style="margin-top: 10px;margin-bottom: -10px;">
+        <input type="checkbox" [ngModel]="showAll$ | async" (ngModelChange)="showAll$.next($event)" />
+        <span></span> Show all applications
+    </label>
+</div>
+<div class="modal-body">
+    <c8y-data-grid class="full-modal scroll-column disable-bulk-selection" [title]="'Applications' | translate"
+        [columns]="columns" [rows]="filteredApplications" [pagination]="pagination" [selectable]="true"
+        [bulkActionControls]="[]" [actionControls]="actionControls" (itemsSelect)="onEntriesSelected($event)">
+
+        <c8y-column name="name">
+            <ng-container *c8yCellRendererDef="let context">
+                {{ getName(context.value) }}
+            </ng-container>
+        </c8y-column>
+    </c8y-data-grid>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-primary" [disabled]="!isEntrySelected()" (click)="close()">Ok</button>
+    <button type="button" class="btn btn-default" (click)="close(false)">Cancel</button>
 </div>
