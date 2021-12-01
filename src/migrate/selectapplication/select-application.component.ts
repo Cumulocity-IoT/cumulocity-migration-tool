@@ -15,68 +15,90 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Component, EventEmitter, Input, OnDestroy, Output, ViewChild} from "@angular/core";
-import {DataClient} from "../../DataClient";
-import {DataService} from "../../data.service";
-import {sortById} from "../../utils/utils";
-import {IManagedObject, IApplication} from "@c8y/client";
-import {ModalDirective} from "ngx-bootstrap/modal";
-import {BehaviorSubject, Subscription} from "rxjs";
-import {SelectionService} from "../../selection.service";
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from "@angular/core";
+import { DataClient } from "../../DataClient";
+import { DataService } from "../../data.service";
+import { sortById } from "../../utils/utils";
+import { IManagedObject, IApplication } from "@c8y/client";
+import { BsModalRef } from "ngx-bootstrap/modal";
+import { BehaviorSubject, Subject, Subscription } from "rxjs";
+import { ActionControl, Column, DataGridComponent, Pagination } from "@c8y/ngx-components";
 
 @Component({
     templateUrl: './select-application.component.html',
     selector: 'selectApplication'
 })
-export class SelectApplicationComponent implements OnDestroy{
+export class SelectApplicationComponent implements OnInit {
     @Input() selected: string;
-    @Output() selectedChange: EventEmitter<string> = new EventEmitter<string>();
 
-    @ViewChild(ModalDirective) modal: ModalDirective;
+    onClose: Subject<string> = new Subject();
+
+    @ViewChild(DataGridComponent, { static: true })
+    dataGrid: DataGridComponent;
 
     private dataClient: DataClient;
+
+    allApplications: (IApplication & { id: string | number, binary: IManagedObject } & { applicationBuilder?: any })[];
+
+    filteredApplications: (IApplication & { id: string | number, binary: IManagedObject, downloading?: boolean })[];
+
     showAll$: BehaviorSubject<boolean> = new BehaviorSubject(false);
-    allApplications: Promise<(IApplication & {id: string|number, binary: IManagedObject} & {applicationBuilder?: any})[]>;
-    filteredApplications: Promise<(IApplication & {id: string|number, binary: IManagedObject, downloading?:boolean})[]>;
 
     showAllSubscription: Subscription;
 
-    constructor(private dataService: DataService, private selectionService: SelectionService) {
-        this.load();
+    columns: Column[] = [
+        {
+            name: 'id',
+            header: 'ID',
+            path: 'id',
+            gridTrackSize: '0.5fr'
+        },
+        {
+            name: 'name',
+            header: 'Name',
+            path: 'name',
+        }
+    ];
+
+    pagination: Pagination = {
+        pageSize: 20,
+        currentPage: 1,
+    };
+
+    actionControls: ActionControl[] = [
+        {
+            text: 'Open Application',
+            type: 'ACTION',
+            icon: 'system-task',
+            callback: ((application: IApplication) => { this.openApplication(application) })
+        }
+    ];
+
+    constructor(private dataService: DataService, private modalRef: BsModalRef) { }
+
+    async ngOnInit(): Promise<void> {
+        await this.load();
+        this.initSelectedEntry();
     }
 
-    load() {
-        this.dataClient = this.dataService.getSourceDataClient();
-        this.allApplications = this.dataClient.getApplicationsWithBinaries();
+    async load() {
+        this.dataClient = this.dataService.getDestinationDataClient();
+        this.allApplications = await this.dataClient.getApplicationsWithBinaries();
         this.showAllSubscription = this.showAll$.subscribe(showAll => {
-            this.filteredApplications = this.allApplications.then(apps => sortById(apps.filter(app => showAll || app.binary || app.applicationBuilder)));
+            this.filteredApplications = sortById(this.allApplications.filter(app => showAll || app.binary || app.applicationBuilder));
         });
     }
 
-    isSelected(app: {id: string|number}) {
-        return app.id.toString() == this.selected;
+    initSelectedEntry(): void {
+        this.dataGrid.selectedItemIds = [this.selected];
     }
 
-    toggleSelection(app: {id: string|number}) {
-        if (this.isSelected(app)) {
-            this.selected = undefined;
-        } else {
-            this.selected = app.id.toString();
-        }
+    isEntrySelected(): boolean {
+        return !!this.selected;
     }
 
-    trackById(index, value) {
-        return value.id;
-    }
-
-    getName(app: IApplication) {
-        return app.name || '-';
-    }
-
-    openApplication(event: MouseEvent, app: IApplication) {
-        event.stopPropagation();
-        const baseUrl = this.dataClient.getBaseUrl();
-        window.open(`${baseUrl}/apps/${app.contextPath}`, '_blank');
+    getName(name: string) {
+        return name || '-';
     }
 
     reload() {
@@ -84,18 +106,39 @@ export class SelectApplicationComponent implements OnDestroy{
         this.load();
     }
 
-    open() {
-        this.modal.show();
+    onEntriesSelected(selectedEntryIds: string[]): void {
+        if (selectedEntryIds.length === 0) {
+            this.selected = undefined;
+            return;
+        }
+
+        const newlySelectedEntryId = selectedEntryIds.find((selectedEntryId) => selectedEntryId != this.selected);
+        if (!newlySelectedEntryId) {
+            return;
+        }
+
+        this.dataGrid.selectedItemIds = [newlySelectedEntryId];
+        this.selected = newlySelectedEntryId;
     }
 
     close(success: boolean = true) {
         if (success) {
-            this.selectedChange.emit(this.selected);
+            this.onClose.next(this.selected);
         }
-        this.modal.hide();
+
+        this.modalRef.hide();
     }
 
-    ngOnDestroy(): void {
-        this.showAllSubscription.unsubscribe();
+    viewManagedObject(managedObject: IManagedObject) {
+        const blob = new Blob([JSON.stringify(managedObject, undefined, 2)], {
+            type: 'application/json'
+        });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    }
+
+    openApplication(app: IApplication) {
+        const baseUrl = this.dataClient.getBaseUrl();
+        window.open(`${baseUrl}/apps/${app.contextPath}`, '_blank');
     }
 }

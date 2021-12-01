@@ -62,8 +62,7 @@
             <td>{{m.application.key}}</td>
             <td class="creation-mode">
                 {{m.updateExisting ? 'Update' : 'Create'}}
-                <selectApplication #modal [selected]="m.updateExisting?.id.toString()" (selectedChange)="changeApplicationMigrationUpdateExisting(m, $event)"></selectApplication>
-                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="modal.open()"><i c8yIcon="pencil"></i></a>
+                <a class="btn btn-primary hover-show pull-right" *ngIf="canUpdate" (click)="openSelectApplicationModal(m)"><i c8yIcon="pencil"></i></a>
             </td>
             <td>{{m.updateExisting?.id || '-'}}</td>
             <td>

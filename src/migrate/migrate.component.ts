@@ -44,6 +44,7 @@ import { SelectGroupComponent } from './selectgroup/select-group.component';
 import { SelectOtherComponent } from './selectother/select-other.component';
 import { SelectSimulatorComponent } from './selectsimulator/select-simulator.component';
 import { SelectSmartRuleComponent } from './selectsmartrule/select-smart-rule.component';
+import { SelectApplicationComponent } from './selectapplication/select-application.component';
 
 
 @Component({
@@ -395,6 +396,13 @@ export class MigrateComponent {
         const modalRef = this.modalService.show(SelectSmartRuleComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: smartRule.updateExisting.id } });
         modalRef.content.onClose.subscribe((selectedSmartRuleId) => {
             this.changeManagedObjectMigrationUpdateExisting(smartRule, selectedSmartRuleId);
+        });
+    }
+
+    openSelectApplicationModal(application: ApplicationMigration): void {
+        const modalRef = this.modalService.show(SelectApplicationComponent, { backdrop: 'static', class: 'modal-lg', initialState: { selected: application.updateExisting.id } });
+        modalRef.content.onClose.subscribe((selectedApplicationId) => {
+            this.changeApplicationMigrationUpdateExisting(application, selectedApplicationId);
         });
     }
 
