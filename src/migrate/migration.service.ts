@@ -1,5 +1,5 @@
-import {DataClient} from "../DataClient";
-import {IApplication, IManagedObject} from "@c8y/client";
+import { DataClient } from "../DataClient";
+import { IApplication, IManagedObject } from "@c8y/client";
 import _ from "lodash";
 import objectScan from "object-scan";
 import {
@@ -9,16 +9,16 @@ import {
     isSimulatorDevice,
     setFromPath
 } from "../utils/utils";
-import {IExternalId} from "../c8y-interfaces/IExternalId";
-import {Subject} from "rxjs";
-import {ISmartRuleConfig} from "../c8y-interfaces/ISmartRuleConfig";
+import { IExternalId } from "../c8y-interfaces/IExternalId";
+import { Subject } from "rxjs";
+import { ISmartRuleConfig } from "../c8y-interfaces/ISmartRuleConfig";
 import { IEplFileConfiguration } from "src/c8y-interfaces/IEplFileConfig";
 
 export interface ApplicationMigration {
     newName: string,
     newContextPath: string,
     newAppKey: string,
-    application: IApplication & { binary:IManagedObject },
+    application: IApplication & { binary: IManagedObject },
     updateExisting?: IApplication
 }
 
@@ -66,25 +66,25 @@ export class MigrationLogEvent {
 export class Migration {
     log$ = new Subject<MigrationLogEvent>();
 
-    constructor(private sourceClient: DataClient, private destinationClient: DataClient) {}
+    constructor(private sourceClient: DataClient, private destinationClient: DataClient) { }
 
-    async migrate(deviceMigrations: ManagedObjectMigration[], simulatorMigrations: ManagedObjectMigration[], 
-        groupMigrations: ManagedObjectMigration[], otherMigrations: ManagedObjectMigration[], 
-        smartRuleMigrations: ManagedObjectMigration[], dashboardMigrations: ManagedObjectMigration[], 
+    async migrate(deviceMigrations: ManagedObjectMigration[], simulatorMigrations: ManagedObjectMigration[],
+        groupMigrations: ManagedObjectMigration[], otherMigrations: ManagedObjectMigration[],
+        smartRuleMigrations: ManagedObjectMigration[], dashboardMigrations: ManagedObjectMigration[],
         binaryMigrations: ManagedObjectMigration[], appMigrations: ApplicationMigration[],
         eplFileMigrations: EplFileMigration[], isMigrateExternalIds: boolean) {
         // Separate the simulated devices from the non-simulated devices
         const [simulatorDeviceMigrations, nonSimulatorDeviceMigrations] = _.partition(deviceMigrations, deviceMigration => {
             if (!isSimulatorDevice(deviceMigration.managedObject)) return false;
-            const simulatorId = getSimulatorId(deviceMigration.managedObject as (IManagedObject & {externalIds: IExternalId[]}));
+            const simulatorId = getSimulatorId(deviceMigration.managedObject as (IManagedObject & { externalIds: IExternalId[] }));
             return simulatorMigrations.some(simMigration => simMigration.managedObject.id.toString() === simulatorId);
         });
 
-        const oldIdsToNewIds = new Map<string, string|number>();
-        
+        const oldIdsToNewIds = new Map<string, string | number>();
+
         // Migrate the standard managedObjects
         this.log$.next(MigrationLogEvent.info("Migrating Groups, Devices, and Other ManagedObjects..."));
-        const standardMoMigrations = [].concat(groupMigrations, nonSimulatorDeviceMigrations, otherMigrations);
+        const standardMoMigrations = [].concat(groupMigrations, nonSimulatorDeviceMigrations);
         for (let moMigration of standardMoMigrations) {
             if (moMigration.updateExisting) {
                 this.log$.next(MigrationLogEvent.verbose(`Migrating: ${moMigration.managedObject.id} - Updating existing managed object: ${moMigration.updateExisting.id}.`));
@@ -99,13 +99,13 @@ export class Migration {
                 console.log(moMigration);
                 // migrate external IDs if option is enabled
                 if (isMigrateExternalIds && moMigration.managedObject.externalIds && moMigration.managedObject.externalIds.length > 0) {
-                    console.log("migrate external ids");
-                    console.log(moMigration.managedObject.externalIds);
                     moMigration.managedObject.externalIds.forEach(externalIdRepresentation => {
-                        this.destinationClient.createExternalId(newManagedObjectId, 
-                            {externalId: externalIdRepresentation.externalId, 
-                            type: externalIdRepresentation.type, 
-                            managedObject : {id: newManagedObjectId}} as IExternalId);
+                        this.destinationClient.createExternalId(newManagedObjectId,
+                            {
+                                externalId: externalIdRepresentation.externalId,
+                                type: externalIdRepresentation.type,
+                                managedObject: { id: newManagedObjectId }
+                            } as IExternalId);
                     });
                 }
             }
@@ -117,7 +117,7 @@ export class Migration {
         // First find all of the devices linked to a simulator
         const simulatorDeviceMigrationsBySimulatorId = new Map<string, ManagedObjectMigration[]>();
         for (let simulatorDeviceMigration of simulatorDeviceMigrations) {
-            const simulatorDevice = simulatorDeviceMigration.managedObject  as (IManagedObject & {externalIds: IExternalId[]});
+            const simulatorDevice = simulatorDeviceMigration.managedObject as (IManagedObject & { externalIds: IExternalId[] });
             const simulatorId = getSimulatorId(simulatorDevice);
             if (simulatorId) {
                 if (!simulatorDeviceMigrationsBySimulatorId.has(simulatorId)) {
@@ -136,18 +136,18 @@ export class Migration {
                 const simulatorConfig = _.omit(_.cloneDeep(simulatorMigration.managedObject.c8y_DeviceSimulator), 'id');
                 simulatorConfig.name = simulatorMigration.newName;
 
-                let newSimulatorId: string|number;
-                let deviceIds: (string|number)[];
+                let newSimulatorId: string | number;
+                let deviceIds: (string | number)[];
                 if (simulatorMigration.updateExisting) {
                     simulatorConfig.id = simulatorMigration.updateExisting.id;
                     simulatorConfig.instances = Math.max(simDeviceMigrations.length, simulatorConfig.instances);
                     this.log$.next(MigrationLogEvent.verbose(`Migrating: ${simulatorMigration.managedObject.id} - Updating existing simulator: ${simulatorMigration.updateExisting.id}, with ${simulatorConfig.instances} instances.`));
-                    ({simulatorId: newSimulatorId, deviceIds: deviceIds} = await this.destinationClient.updateSimulator(simulatorConfig));
+                    ({ simulatorId: newSimulatorId, deviceIds: deviceIds } = await this.destinationClient.updateSimulator(simulatorConfig));
                 } else {
                     this.log$.next(MigrationLogEvent.verbose(`Migrating: ${simulatorMigration.managedObject.id} - Creating new simulator, with ${simDeviceMigrations.length} instances.`));
                     // Create the simulator (which creates the simulator devices
                     simulatorConfig.instances = simDeviceMigrations.length;
-                    ({simulatorId: newSimulatorId, deviceIds: deviceIds} = await this.destinationClient.createSimulator(simulatorConfig));
+                    ({ simulatorId: newSimulatorId, deviceIds: deviceIds } = await this.destinationClient.createSimulator(simulatorConfig));
                 }
 
                 // Update the simulator devices
@@ -170,7 +170,7 @@ export class Migration {
         for (let srMigration of smartRuleMigrations) {
             if (srMigration.updateExisting) {
                 this.log$.next(MigrationLogEvent.verbose(`Migrating: ${srMigration.managedObject.id} - Updating existing smart rule: ${srMigration.updateExisting.id}.`));
-                const srConfig = _.omit(this.smartRuleMigrationToSmartRuleConfig(srMigration, oldIdsToNewIds),'type');
+                const srConfig = _.omit(this.smartRuleMigrationToSmartRuleConfig(srMigration, oldIdsToNewIds), 'type');
                 srConfig.id = srMigration.updateExisting.id;
                 oldIdsToNewIds.set(srMigration.managedObject.id.toString(), await this.destinationClient.updateSmartRule(srConfig));
             } else {
@@ -208,6 +208,18 @@ export class Migration {
             }
         }
 
+        // Migrate other ManagedObjects and look for references
+        this.log$.next(MigrationLogEvent.info("Migrating Other ManagedObjects..."));
+        for (let otherManagedObjectMigration of otherMigrations) {
+            if (otherManagedObjectMigration.updateExisting) {
+                // TODO implement update mechanism
+            } else {
+                this.log$.next(MigrationLogEvent.verbose(`Migrating: ${otherManagedObjectMigration.managedObject.id} - Creating new Managed Object.`));
+                let managedObjectToMigrate = this.otherManagedObjectMigrationToManagedObject(otherManagedObjectMigration, oldIdsToNewIds);
+                oldIdsToNewIds.set(otherManagedObjectMigration.managedObject.id.toString(), await this.destinationClient.createManagedObject(managedObjectToMigrate));
+            }
+        }
+
         // Migrate the dashboards
         this.log$.next(MigrationLogEvent.info("Migrating Dashboards..."));
         for (let dashboardMigration of dashboardMigrations) {
@@ -218,9 +230,24 @@ export class Migration {
                 oldIdsToNewIds.set(dashboardMigration.managedObject.id.toString(), await this.destinationClient.updateManagedObject(db));
             } else {
                 this.log$.next(MigrationLogEvent.verbose(`Migrating: ${dashboardMigration.managedObject.id} - Creating new dashboard.`));
-                oldIdsToNewIds.set(dashboardMigration.managedObject.id.toString(), await this.destinationClient.createManagedObject(this.dashboardMigrationToManagedObject(dashboardMigration, oldIdsToNewIds)));
+                dashboardMigration.updateExisting = this.dashboardMigrationToManagedObject(dashboardMigration, oldIdsToNewIds);
+                dashboardMigration.updateExisting.id = (await this.destinationClient.createManagedObject(dashboardMigration.updateExisting)).toString();
+                oldIdsToNewIds.set(dashboardMigration.managedObject.id.toString(), dashboardMigration.updateExisting.id);
             }
         }
+
+        // run through config of dashboards and update 
+        for (let dashboardMigration of dashboardMigrations) {
+            if (dashboardMigration.updateExisting) {
+                // check widgets if any custom configuration and ids need to be updated
+                if (_.has(dashboardMigration.updateExisting, 'c8y_Dashboard.children')) {
+                    this.replaceOldIdsWithNew(_.get(dashboardMigration.updateExisting, 'c8y_Dashboard.children'), oldIdsToNewIds);
+                }
+            }
+
+            await this.destinationClient.updateManagedObject(dashboardMigration.updateExisting);
+        }
+
 
         // Create the parent child linkages
         this.log$.next(MigrationLogEvent.info("Migrating Parent/Child linkages..."));
@@ -248,20 +275,20 @@ export class Migration {
         this.log$.next(MigrationLogEvent.info("Done"));
     }
 
-    static appMigrationToApp(appMigration: ApplicationMigration, oldIdsToNewIds: Map<string, string|number>): IApplication {
-        const result: IApplication & {applicationBuilder?: any} = {};
+    static appMigrationToApp(appMigration: ApplicationMigration, oldIdsToNewIds: Map<string, string | number>): IApplication {
+        const result: IApplication & { applicationBuilder?: any } = {};
 
         // Blacklist certain fields
         function isBlacklistedKey(key) {
             if (key.length) {
-                switch(key[0]) {
+                switch (key[0]) {
                     case 'downloading': // we added downloading so remove it
                     case 'binary': // we added the binary key so remove it
                     case 'activeVersionId':
                         return true;
                 }
 
-                switch(key[key.length - 1]) {
+                switch (key[key.length - 1]) {
                     case 'owner':
                     case 'self':
                         return true;
@@ -270,7 +297,8 @@ export class Migration {
             return false;
         }
 
-        const paths = objectScan(['**.*'], {useArraySelector: false, joined: false, breakFn: (key, value) => isBlacklistedKey(key), filterFn: (key, value) => {
+        const paths = objectScan(['**.*'], {
+            useArraySelector: false, joined: false, breakFn: (key, value) => isBlacklistedKey(key), filterFn: (key, value) => {
                 if (isBlacklistedKey(key)) {
                     return false;
                 }
@@ -278,7 +306,8 @@ export class Migration {
                 // We want to copy the leaf nodes (and will create their paths) so we skip anything that isn't a leaf node
                 // In other words: only values (string or number) and empty objects or arrays
                 return _.isString(value) || _.isNumber(value) || _.isNull(value) || Object.keys(value).length === 0;
-            }})(appMigration.application);
+            }
+        })(appMigration.application);
 
         paths.forEach(path => {
             _.set(result, path, _.get(appMigration.application, path));
@@ -315,7 +344,7 @@ export class Migration {
             if (appMigration.application.externalUrl) {
                 result.externalUrl = appMigration.application.externalUrl.split(appMigration.application.id.toString()).join('UNKNOWN-APP-ID');
             }
-            
+
         }
 
         // Update the application with the user provided changes...
@@ -326,7 +355,7 @@ export class Migration {
         return result;
     }
 
-    dashboardMigrationToManagedObject(dashboardMigration: ManagedObjectMigration, oldDeviceIdToNew: Map<string, string|number>): IManagedObject {
+    dashboardMigrationToManagedObject(dashboardMigration: ManagedObjectMigration, oldDeviceIdToNew: Map<string, string | number>): IManagedObject {
         let result = this.managedObjectMigrationToManagedObject(dashboardMigration);
 
         // Update all of the device/group ids to be the new ones
@@ -361,12 +390,36 @@ export class Migration {
         return result;
     }
 
+    otherManagedObjectMigrationToManagedObject(otherManagedObjectMigration: ManagedObjectMigration, oldIdToNew: Map<string, string | number>): IManagedObject {
+        this.replaceOldIdsWithNew(otherManagedObjectMigration.managedObject, oldIdToNew);
+        return this.managedObjectMigrationToManagedObject(otherManagedObjectMigration);
+    }
+
+    replaceOldIdsWithNew(objectToScan: object, oldIdToNew: Map<string, string | number>) {
+        _.difference(_.keys(objectToScan), ['owner', 'lastUpdated', 'creationTime', 'childDevices', 'childAssets', 'childAdditions', 'assetParents', 'deviceParents', 'additionParents', 'self']).forEach(key => {
+            let oldIdKeys = Array.from(oldIdToNew.keys());
+
+            if (typeof objectToScan[key] === 'object') {
+                return this.replaceOldIdsWithNew(objectToScan[key], oldIdToNew);
+            }
+
+            if (typeof objectToScan[key] === 'string') {
+                let index = _.indexOf(oldIdKeys, objectToScan[key]);
+                if (index === -1) {
+                    return;
+                }
+
+                objectToScan[key] = oldIdToNew.get(oldIdKeys[index]);
+            }
+        });
+    }
+
     managedObjectMigrationToManagedObject(managedObjectMigration: ManagedObjectMigration): IManagedObject {
         const result: IManagedObject = {} as any;
 
         function isBlacklistedKey(key) {
             if (key.length) {
-                switch(key[0]) {
+                switch (key[0]) {
                     case 'id':
                     case 'lastUpdated':
                     case 'additionParents':
@@ -381,7 +434,7 @@ export class Migration {
                         return true;
                 }
 
-                switch(key[key.length - 1]) {
+                switch (key[key.length - 1]) {
                     case 'owner':
                     case 'self':
                         return true;
@@ -390,7 +443,8 @@ export class Migration {
             return false;
         }
 
-        const paths = objectScan(['**.*'], {useArraySelector: false, joined: false, breakFn: (key, value) => isBlacklistedKey(key), filterFn: (key, value) => {
+        const paths = objectScan(['**.*'], {
+            useArraySelector: false, joined: false, breakFn: (key, value) => isBlacklistedKey(key), filterFn: (key, value) => {
                 if (isBlacklistedKey(key)) {
                     return false;
                 }
@@ -398,7 +452,8 @@ export class Migration {
                 // We want to copy the leaf nodes (and will create their paths) so we skip anything that isn't a leaf node
                 // In other words: only values (string or number) and empty objects or arrays
                 return _.isString(value) || _.isNumber(value) || _.isNull(value) || Object.keys(value).length === 0;
-            }})(managedObjectMigration.managedObject);
+            }
+        })(managedObjectMigration.managedObject);
 
         paths.forEach(path => {
             setFromPath(result, path, _.get(managedObjectMigration.managedObject, path));
@@ -412,16 +467,14 @@ export class Migration {
         return result;
     }
 
-    managedObjectMigrationToManagedObjectLinkages(managedObjectMigration: ManagedObjectMigration, oldDeviceIdToNew: Map<string, string|number>):
-        {
-            additionParents: string[],
-            childAdditions: string[],
-            assetParents: string[],
-            childAssets: string[],
-            childDevices: string[],
-            deviceParents: string[]
-        }
-    {
+    managedObjectMigrationToManagedObjectLinkages(managedObjectMigration: ManagedObjectMigration, oldDeviceIdToNew: Map<string, string | number>): {
+        additionParents: string[],
+        childAdditions: string[],
+        assetParents: string[],
+        childAssets: string[],
+        childDevices: string[],
+        deviceParents: string[]
+    } {
         return {
             // TODO: add missing to warnings
             additionParents: _.flatMap(_.get(managedObjectMigration.managedObject, 'additionParents.references', []),
@@ -439,7 +492,7 @@ export class Migration {
         }
     }
 
-    smartRuleMigrationToSmartRuleConfig(smartRuleMigration: ManagedObjectMigration, oldDeviceIdToNew: Map<string, string|number>): ISmartRuleConfig {
+    smartRuleMigrationToSmartRuleConfig(smartRuleMigration: ManagedObjectMigration, oldDeviceIdToNew: Map<string, string | number>): ISmartRuleConfig {
         const managedObject = this.managedObjectMigrationToManagedObject(smartRuleMigration);
 
         const result: ISmartRuleConfig = _.pick(managedObject, ['c8y_Context', 'config', 'enabled', 'enabledSources', 'name', 'ruleTemplateName', 'type']);
@@ -455,10 +508,10 @@ export class Migration {
         return result;
     }
 
-    eplFileMigrationToEplFileConfiguration(eplFileMigration: EplFileMigration, oldDeviceIdToNew: Map<string, string|number>) : IEplFileConfiguration {
+    eplFileMigrationToEplFileConfiguration(eplFileMigration: EplFileMigration, oldDeviceIdToNew: Map<string, string | number>): IEplFileConfiguration {
         const result: IEplFileConfiguration = _.cloneDeep(eplFileMigration.eplFile);
         result.name = eplFileMigration.newName;
-        
+
         return result;
     }
 }
