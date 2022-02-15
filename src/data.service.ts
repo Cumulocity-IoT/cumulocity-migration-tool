@@ -15,26 +15,38 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import {Inject, Injectable} from "@angular/core";
-import {ClientLike} from "./currentclient.service";
-import {Client, BasicAuth} from "@c8y/client";
-import {CredentialsService, IConnectionDetails} from "./credentials.service";
-import {getValueSync} from "./utils/utils";
-import {map, shareReplay} from "rxjs/operators";
-import {Observable} from "rxjs";
-import {HttpDataClient} from "./HttpDataClient";
-import {FileDataClient} from "./FileDataClient";
-import {DataClient} from "./DataClient";
+import { Inject, Injectable } from "@angular/core";
+import { ClientLike } from "./currentclient.service";
+import { Client, BasicAuth } from "@c8y/client";
+import { CredentialsService, IConnectionDetails } from "./credentials.service";
+import { getValueSync } from "./utils/utils";
+import { map, shareReplay } from "rxjs/operators";
+import { Observable } from "rxjs";
+import { HttpDataClient } from "./HttpDataClient";
+import { FileDataClient } from "./FileDataClient";
+import { DataClient } from "./DataClient";
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class DataService {
+    private readonly DEFAULT_FRAGMENTS = [
+        'c8y_IsBinary',
+        'c8y_IsDevice',
+        'c8y_IsDeviceGroup',
+        'c8y_Dashboard',
+        'c8y_DeviceSimulator',
+        'ruleTemplateName'
+    ];
+
+    private customFragments: string[];
+
     sourceDataClient$: Observable<DataClient>;
+
     destinationDataClient$: Observable<DataClient>;
 
     currentClientDataClient: DataClient;
 
     constructor(private credentialsService: CredentialsService, @Inject('currentClient') private currentClient: ClientLike) {
-        this.currentClientDataClient = new HttpDataClient(this.currentClient);
+        this.currentClientDataClient = new HttpDataClient(this.currentClient, this);
 
         this.sourceDataClient$ = this.credentialsService.source$
             .pipe(map((connection) => this.createDataClient(connection)), shareReplay(1));
@@ -43,11 +55,11 @@ export class DataService {
     }
 
     createDataClient(connection: IConnectionDetails): DataClient {
-        switch(connection.type) {
+        switch (connection.type) {
             case 'currentTenant':
                 return this.currentClientDataClient;
             case 'tenant':
-                return new HttpDataClient(new Client(new BasicAuth(connection.credentials), connection.baseUrl));
+                return new HttpDataClient(new Client(new BasicAuth(connection.credentials), connection.baseUrl), this);
             case 'file':
                 return new FileDataClient(connection.file, connection.fileName);
         }
@@ -56,7 +68,24 @@ export class DataService {
     getSourceDataClient(): DataClient {
         return getValueSync(this.sourceDataClient$);
     }
+
     getDestinationDataClient(): DataClient {
         return getValueSync(this.destinationDataClient$);
+    }
+
+    setCustomFragments(customFragments: string[]): void {
+        this.customFragments = customFragments;
+    }
+
+    isFilterOnCustomFragments(): boolean {
+        return this.customFragments && this.customFragments.length > 0;
+    }
+
+    getFragmentsToFilterOn(): string[] {
+        return this.DEFAULT_FRAGMENTS.concat(this.customFragments);
+    }
+
+    getCustomFragments(): string[] {
+        return this.customFragments;
     }
 }

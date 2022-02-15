@@ -29,7 +29,7 @@ import {
 } from '@c8y/ngx-components';
 import { FormsModule } from "@angular/forms";
 import { FileSizePipe } from "./src/pipes/filesize.pipe";
-import { CredentialsComponent as SourceCredentialsComponent } from "./src/source/credentials/credentials.component";
+import { ConnectionDetailsComponent as SourceCredentialsComponent } from "./src/source/credentials/connection-details.component";
 import { CredentialsComponent as DestinationCredentialsComponent } from "./src/destination/credentials/credentials.component";
 import { CredentialsService } from "./src/credentials.service";
 import { CredentialsGuard as SourceCredentialsGuard } from "./src/source/credentials.guard";

@@ -24,6 +24,7 @@ import { IExternalId } from "./c8y-interfaces/IExternalId";
 import { ISimulatorConfig } from "./c8y-interfaces/ISimulatorConfig";
 import { ISmartRuleConfig } from "./c8y-interfaces/ISmartRuleConfig";
 import { IEplFileConfiguration } from "./c8y-interfaces/IEplFileConfig";
+import { DataService } from "./data.service";
 
 export class HttpDataClient extends DataClient {
     private applications: Promise<IApplication[]>;
@@ -31,7 +32,7 @@ export class HttpDataClient extends DataClient {
     private externalIds = new Map<string, Promise<IExternalId[]>>();
     private eplFiles: Promise<IEplFileConfiguration[]>;
 
-    constructor(private client: ClientLike) {
+    constructor(private client: ClientLike, private dataService: DataService) {
         super();
     }
 
@@ -49,9 +50,13 @@ export class HttpDataClient extends DataClient {
     async getAllManagedObjects(cached = true): Promise<IManagedObject[]> {
         if (cached && this.allManagedObjects) {
             return this.allManagedObjects;
-        } else {
+        }
+
+        if (!this.dataService.isFilterOnCustomFragments()) {
             return this.allManagedObjects = this.getManagedObjects();
         }
+
+        return this.allManagedObjects = this.getFilteredManagedObjects();
     }
 
     private async getManagedObjects(): Promise<IManagedObject[]> {
@@ -67,6 +72,30 @@ export class HttpDataClient extends DataClient {
         while (currentPage < initialResponse.paging.totalPages) {
             currentPage++;
             managedObjects = managedObjects.concat((await this.client.inventory.list({ pageSize: 2000, currentPage })).data);
+        }
+
+        return managedObjects;
+    }
+
+    private async getFilteredManagedObjects(): Promise<IManagedObject[]> {
+        const fragmentsToFilterOn = this.dataService.getFragmentsToFilterOn();
+        let currentPage = 1;
+        let queryFilter = {
+            __or: []
+        }
+
+        fragmentsToFilterOn.forEach(fragment => queryFilter.__or.push({ __has: fragment }));
+
+        const initialResponse = await this.client.inventory.listQuery(queryFilter, { pageSize: 100, withTotalPages: true, currentPage })
+        let managedObjects = initialResponse.data;
+
+        if (initialResponse.paging.totalPages === 1) {
+            return managedObjects;
+        }
+
+        while (currentPage < initialResponse.paging.totalPages) {
+            currentPage++;
+            managedObjects = managedObjects.concat((await this.client.inventory.listQuery(queryFilter, { pageSize: 100, currentPage })).data);
         }
 
         return managedObjects;

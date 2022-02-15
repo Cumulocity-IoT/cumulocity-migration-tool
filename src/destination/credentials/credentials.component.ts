@@ -40,7 +40,7 @@ export class CredentialsComponent {
         private dataService: DataService, @Inject('currentClient') private currentClient: ClientLike,
         private appState: AppStateService) {
         this.connectionDetails$ = credentialsService.destination$;
-        new HttpDataClient(this.currentClient).getUser().then(user => {
+        new HttpDataClient(this.currentClient, this.dataService).getUser().then(user => {
             this.currentUser = user;
         });
         this.currentTenantUrl = this.currentClient.core.baseUrl;

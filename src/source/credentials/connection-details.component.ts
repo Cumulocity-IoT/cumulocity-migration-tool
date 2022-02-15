@@ -15,7 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
-import { Component, Inject, TemplateRef } from '@angular/core';
+import { Component, Inject, OnInit, TemplateRef } from '@angular/core';
 import { CredentialsService, IConnectionDetails, IFileConnectionDetails, ITenantConnectionDetails } from "../../credentials.service";
 import { BehaviorSubject } from "rxjs";
 import { AlertService } from "@c8y/ngx-components";
@@ -24,23 +24,40 @@ import { HttpDataClient } from "../../HttpDataClient";
 import { ICurrentUser } from '@c8y/client';
 import { DataService } from "../../data.service";
 import { SelectionService } from "../../selection.service";
+import { TOUCH_BUFFER_MS } from '@angular/cdk/a11y';
 
 @Component({
-    templateUrl: './credentials.component.html'
+    templateUrl: './connection-details.component.html'
 })
-export class CredentialsComponent {
+export class ConnectionDetailsComponent implements OnInit {
     connectionDetails$: BehaviorSubject<IConnectionDetails>;
+    
     currentUser: ICurrentUser;
+    
     currentTenantUrl: string;
+
+    customFragments: string;
 
     constructor(private credentialsService: CredentialsService, private alertService: AlertService,
         private dataService: DataService, @Inject('currentClient') private currentClient: ClientLike,
         private selectionService: SelectionService) {
         this.connectionDetails$ = credentialsService.source$;
-        new HttpDataClient(this.currentClient).getUser().then(user => {
+        new HttpDataClient(this.currentClient, this.dataService).getUser().then(user => {
             this.currentUser = user;
         });
         this.currentTenantUrl = this.currentClient.core.baseUrl;
+    }
+
+    ngOnInit(): void {
+        this.initCustomFragments();
+    }
+
+    initCustomFragments(): void {
+        if (!this.dataService.isFilterOnCustomFragments()) {
+            return;
+        }
+
+        this.customFragments = this.dataService.getCustomFragments().join('\n');
     }
 
     save({ username, password, baseUrl }: { username: string, password: string, baseUrl: string }) {
@@ -83,5 +100,20 @@ export class CredentialsComponent {
                     this.selectionService.select(asset.id)
                 })
             });
+    }
+
+    onCustomFragmentSaveButtonClicked(): void {
+        if (!this.customFragments || this.customFragments.trim().length === 0) {
+            return;
+        }
+
+        this.dataService.setCustomFragments(this.customFragments.split('\n'));
+        this.alertService.success('Custom Fragments successfully saved!');
+    }
+
+    onCustomFragmentsResetButtonClicked(): void {
+        this.customFragments = undefined;
+        this.dataService.setCustomFragments([]);
+        this.alertService.success('Custom Fragments reset successfully!');
     }
 }
