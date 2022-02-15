@@ -86,7 +86,7 @@ export class HttpDataClient extends DataClient {
 
         fragmentsToFilterOn.forEach(fragment => queryFilter.__or.push({ __has: fragment }));
 
-        const initialResponse = await this.client.inventory.listQuery(queryFilter, { pageSize: 100, withTotalPages: true, currentPage })
+        const initialResponse = await this.client.inventory.listQuery(queryFilter, { pageSize: 2000, withTotalPages: true, currentPage })
         let managedObjects = initialResponse.data;
 
         if (initialResponse.paging.totalPages === 1) {
@@ -95,7 +95,7 @@ export class HttpDataClient extends DataClient {
 
         while (currentPage < initialResponse.paging.totalPages) {
             currentPage++;
-            managedObjects = managedObjects.concat((await this.client.inventory.listQuery(queryFilter, { pageSize: 100, currentPage })).data);
+            managedObjects = managedObjects.concat((await this.client.inventory.listQuery(queryFilter, { pageSize: 2000, currentPage })).data);
         }
 
         return managedObjects;
