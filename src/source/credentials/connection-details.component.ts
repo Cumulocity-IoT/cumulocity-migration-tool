@@ -38,6 +38,8 @@ export class ConnectionDetailsComponent implements OnInit {
 
     customFragments: string;
 
+    isOnlyBaseObjects: boolean = false;
+
     constructor(private credentialsService: CredentialsService, private alertService: AlertService,
         private dataService: DataService, @Inject('currentClient') private currentClient: ClientLike,
         private selectionService: SelectionService) {
@@ -57,6 +59,7 @@ export class ConnectionDetailsComponent implements OnInit {
             return;
         }
 
+        this.isOnlyBaseObjects = this.dataService.isOnlyLoadBasicObjects();
         this.customFragments = this.dataService.getCustomFragments().join('\n');
     }
 
@@ -103,12 +106,13 @@ export class ConnectionDetailsComponent implements OnInit {
     }
 
     onCustomFragmentSaveButtonClicked(): void {
-        if (!this.customFragments || this.customFragments.trim().length === 0) {
-            return;
+        this.dataService.setOnlyLoadBasicObjects(this.isOnlyBaseObjects);
+
+        if (this.customFragments && this.customFragments.trim().length >= 0) {
+            this.dataService.setCustomFragments(this.customFragments.split('\n'));
         }
 
-        this.dataService.setCustomFragments(this.customFragments.split('\n'));
-        this.alertService.success('Custom Fragments successfully saved!');
+        this.alertService.success('Settings saved successfully!');
     }
 
     onCustomFragmentsResetButtonClicked(): void {

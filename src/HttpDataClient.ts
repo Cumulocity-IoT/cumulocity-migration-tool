@@ -39,6 +39,7 @@ export class HttpDataClient extends DataClient {
     async getUser(): Promise<ICurrentUser> {
         return this.client.user.current().then(x => x.data);
     }
+
     getApplications(cached = true): Promise<IApplication[]> {
         if (cached && this.applications) {
             return this.applications;
@@ -78,7 +79,9 @@ export class HttpDataClient extends DataClient {
     }
 
     private async getFilteredManagedObjects(): Promise<IManagedObject[]> {
-        const fragmentsToFilterOn = this.dataService.getFragmentsToFilterOn();
+        const fragmentsToFilterOn = this.dataService.isOnlyLoadBasicObjects()
+            ? this.dataService.DEFAULT_FRAGMENTS :
+            this.dataService.getFragmentsToFilterOn();
         let currentPage = 1;
         let queryFilter = {
             __or: []

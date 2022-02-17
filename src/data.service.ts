@@ -28,7 +28,7 @@ import { DataClient } from "./DataClient";
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
-    private readonly DEFAULT_FRAGMENTS = [
+    readonly DEFAULT_FRAGMENTS = [
         'c8y_IsBinary',
         'c8y_IsDevice',
         'c8y_IsDeviceGroup',
@@ -38,6 +38,8 @@ export class DataService {
     ];
 
     private customFragments: string[];
+
+    private isOnlyLoadBaseObjects: boolean;
 
     sourceDataClient$: Observable<DataClient>;
 
@@ -77,8 +79,16 @@ export class DataService {
         this.customFragments = customFragments;
     }
 
+    setOnlyLoadBasicObjects(isOnlyLoadBaseObjects: boolean): void {
+        this.isOnlyLoadBaseObjects = isOnlyLoadBaseObjects;
+    }
+
+    isOnlyLoadBasicObjects(): boolean {
+        return this.isOnlyLoadBaseObjects;
+    }
+
     isFilterOnCustomFragments(): boolean {
-        return this.customFragments && this.customFragments.length > 0;
+        return (this.customFragments && this.customFragments.length > 0) || this.isOnlyLoadBaseObjects;
     }
 
     getFragmentsToFilterOn(): string[] {
