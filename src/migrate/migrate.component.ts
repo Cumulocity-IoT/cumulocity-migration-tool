@@ -466,7 +466,7 @@ export class MigrateComponent {
     }
 
     findExistingApplication(m: IApplication, existingList: IApplication[]) {
-        const filteredList = existingList.filter(existing => m.name === existing.name || m.contextPath === existing.contextPath);
+        const filteredList = existingList.filter(existing => m.name === existing.name && m.contextPath === existing.contextPath);
 
         return filteredList.find(existing => existing.id.toString() === m.id.toString()) ||
             (filteredList.length > 0 ? filteredList[0] : undefined);
