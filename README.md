@@ -16,7 +16,7 @@ The migration tool can be installed in 2 ways:
 6. Click the **Deploy to Tenant** button
 
 ## Installing from a release
-1. Grab the **[Latest Release Zip](https://github.com/SoftwareAG/cumulocity-migration-tool/releases)**
+1. Grab the **[Latest Release Zip](https://github.com/Cumulocity-IoT/cumulocity-migration-tool/releases)**
 2. Go to the **Administration view** in your tenant (/apps/administration)
 3. Open the **Own applications** section in the navigator
 4. Click **Add application**
@@ -34,8 +34,8 @@ The migration tool can be installed in 2 ways:
 8. Make any edits to the objects
 9. Click Execute Migration in the action bar
 
-# [FAQ - Frequently Asked Questions](https://github.com/SoftwareAG/cumulocity-migration-tool/wiki/Frequently-Asked-Questions)
-The [FAQ](https://github.com/SoftwareAG/cumulocity-migration-tool/wiki/Frequently-Asked-Questions) contains information, limitations, and extra troubleshooting instructions.
+# [FAQ - Frequently Asked Questions](https://github.com/Cumulocity-IoT/cumulocity-migration-tool/wiki/Frequently-Asked-Questions)
+The [FAQ](https://github.com/Cumulocity-IoT/cumulocity-migration-tool/wiki/Frequently-Asked-Questions) contains information, limitations, and extra troubleshooting instructions.
 
 # Screen Overview
 ![ConnectionDetails](images/ConnectionDetails.png)
@@ -62,6 +62,6 @@ The [FAQ](https://github.com/SoftwareAG/cumulocity-migration-tool/wiki/Frequentl
 
 These tools are provided as-is and without warranty or support. They do not constitute part of the Software AG product suite. Users are free to use, fork and modify them, subject to the license agreement. While Software AG welcomes contributions, we cannot guarantee to include every contribution in the master project.
 _____________________
-For more information you can Ask a Question in the [TECHcommunity Forums](https://tech.forums.softwareag.com/tags/c/forum/1/Cumulocity-IoT).
+For more information you can Ask a Question in the [TECHcommunity Forums](https://techcommunity.cumulocity.com/c/forum/).
 
-You can find additional information in the [Software AG TECHcommunity](https://tech.forums.softwareag.com/tag/Cumulocity-IoT).
+You can find additional information in the [Software AG TECHcommunity](https://techcommunity.cumulocity.com).
