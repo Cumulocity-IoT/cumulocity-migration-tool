@@ -1,3 +1,6 @@
+# Deprecation notice
+This tool is not further developed and it might break with upcoming Cumulocity releases. Use it at your own risk. The repository is archived but feel free to fork & adapt it to your needs in a new repo.
+
 # Cumulocity Migration Tool
 A Cumulocity webapp to migrate applications, dashboards, groups, devices, simulators, smart rules, images and managed objects between tenants.
 ![Migration](images/Screenshot.png)
